@@ -273,6 +273,40 @@ function App() {
       >
         Lấy dòng đã chọn
       </button>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        <button
+          onClick={() =>
+            gridRef.current?.api.setColumnsVisible(["dept", "role"], false)
+          }
+          type="button"
+        >
+          Ẩn Phòng ban + Vai trò
+        </button>
+        <button
+          onClick={() =>
+            gridRef.current?.api.setColumnsVisible(["dept", "role"], true)
+          }
+          type="button"
+        >
+          Hiện Phòng ban + Vai trò
+        </button>
+        <button
+          onClick={() =>
+            gridRef.current?.api.setColumnsVisible(["salary"], false)
+          }
+          type="button"
+        >
+          Ẩn cột lương
+        </button>
+        <button
+          onClick={() =>
+            gridRef.current?.api.setColumnsVisible(["salary"], true)
+          }
+          type="button"
+        >
+          Hiện cột lương
+        </button>
+      </div>
       <div style={{ marginBottom: 12 }}>
         <input
           placeholder="Tìm kiếm bên ngoài grid..."

@@ -137,6 +137,10 @@ export type DataGridApi<T extends GridRow> = {
   getSelectedRowIds: () => string[];
   getSelectedRows: () => T[];
   setGlobalFilter: (value: string) => void;
+  setColumnsVisible: (
+    keys: Array<string | Column<T, unknown>>,
+    visible: boolean,
+  ) => void;
 };
 
 export type DataGridRef<T extends GridRow> = {
@@ -880,6 +884,18 @@ function useDataGridController<T extends GridRow>({
       table.getSelectedRowModel().flatRows.map((row) => row.original),
     setGlobalFilter: (value: string) => {
       table.setGlobalFilter(value);
+    },
+    setColumnsVisible: (keys, visible) => {
+      keys.forEach((key) => {
+        const column =
+          typeof key === "string" ? table.getColumn(key) : table.getColumn(key.id);
+
+        if (!column || !column.getCanHide()) {
+          return;
+        }
+
+        column.toggleVisibility(visible);
+      });
     },
   };
 
