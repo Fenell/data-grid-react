@@ -20,7 +20,6 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
     cell: "checkBox",
     pinned: "left",
     width: 52,
-    enableHiding: false,
   },
   {
     id: "id",
@@ -41,6 +40,7 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
     label: "Phòng ban",
     sortable: true,
     filterable: true,
+    align: "center",
     filterType: "select",
     options: ["", ...DEPTS],
     width: 150,
@@ -273,12 +273,30 @@ function App() {
       >
         Lấy dòng đã chọn
       </button>
+      <div style={{ marginBottom: 12 }}>
+        <input
+          placeholder="Tìm kiếm bên ngoài grid..."
+          value={globalFilter}
+          onChange={(event) =>
+            gridRef.current?.api.setGlobalFilter(event.target.value)
+          }
+          style={{
+            width: "100%",
+            maxWidth: 320,
+            height: 36,
+            padding: "0 12px",
+            border: "1px solid #d7e7fb",
+            borderRadius: 8,
+            outline: "none",
+          }}
+        />
+      </div>
       <DataGrid<EmployeeRow>
         ref={gridRef}
         columns={employeeColumns}
         data={pageRows}
         contentHeight={420}
-        enableGlobalFilter
+        enableGlobalFilter={false}
         enableColumnFilters={false}
         enableColumnVisibility
         enablePinning

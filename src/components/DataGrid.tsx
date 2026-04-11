@@ -136,6 +136,7 @@ export type DataGridApi<T extends GridRow> = {
   clearSelectedRows: () => void;
   getSelectedRowIds: () => string[];
   getSelectedRows: () => T[];
+  setGlobalFilter: (value: string) => void;
 };
 
 export type DataGridRef<T extends GridRow> = {
@@ -877,6 +878,9 @@ function useDataGridController<T extends GridRow>({
         .map(([rowId]) => rowId),
     getSelectedRows: () =>
       table.getSelectedRowModel().flatRows.map((row) => row.original),
+    setGlobalFilter: (value: string) => {
+      table.setGlobalFilter(value);
+    },
   };
 
   return {
