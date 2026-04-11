@@ -333,6 +333,7 @@ function App() {
         ref={gridRef}
         columns={employeeColumns}
         data={pageRows}
+        contentHeight={420}
         enableGlobalFilter
         enableColumnFilters={false}
         enableColumnVisibility

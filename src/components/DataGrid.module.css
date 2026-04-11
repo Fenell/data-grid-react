@@ -30,6 +30,7 @@
   --grid-shadow-pinned-right: -10px 0 14px -14px rgba(41, 92, 155, 0.28);
   --grid-transition-fast: 120ms ease;
   --grid-transition-base: 140ms ease;
+  --grid-header-row-height: 38px;
   width: 100%;
   padding: 12px 0;
   /* font-family: "Inter", var(--font-sans), sans-serif; */
@@ -190,8 +191,9 @@
 }
 
 .th {
-  position: relative;
-  z-index: 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
   padding: 8px 12px;
   /* padding-right: 24px; */
   background: var(--grid-bg-header);
@@ -206,7 +208,6 @@
 }
 
 .thPinned {
-  position: sticky;
   left: 0;
   z-index: 8;
   background: var(--grid-bg-header);
@@ -216,12 +217,15 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  width: 100%;
+  min-width: 0;
 }
 
 .headerClickTarget {
   display: flex;
   width: 100%;
   min-height: 100%;
+  align-items: center;
 }
 
 .headerClickTargetSortable {
@@ -293,12 +297,14 @@
 }
 
 .filterTh {
+  position: sticky;
+  top: var(--grid-header-row-height);
+  z-index: 4;
   padding: 3px 8px;
   background: var(--grid-bg-base);
 }
 
 .filterThPinned {
-  position: sticky;
   left: 0;
   z-index: 7;
   background: var(--grid-bg-base);

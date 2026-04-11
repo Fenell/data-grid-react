@@ -147,6 +147,7 @@ export type DataGridProps<T extends GridRow> = DataGridFeatureFlags &
     columns: ColumnDef<T>[];
     data: T[];
     width?: CSSProperties["width"];
+    contentHeight?: CSSProperties["height"];
     pageSizeOptions?: number[];
     emptyMessage?: string;
     getRowId?: (row: T) => string | number;
@@ -328,6 +329,7 @@ function SortIcon({ direction }: { direction: false | "asc" | "desc" }) {
 }
 
 function DataGridTable<T extends GridRow>({
+  contentHeight,
   emptyMessage,
   enableColumnFilters,
   enableResize,
@@ -340,6 +342,7 @@ function DataGridTable<T extends GridRow>({
   table,
   toggleRowSelected,
 }: {
+  contentHeight?: CSSProperties["height"];
   emptyMessage: string;
   enableColumnFilters: boolean;
   enableResize: boolean;
@@ -360,7 +363,17 @@ function DataGridTable<T extends GridRow>({
     visiblePageRowIds.every((rowId) => Boolean(rowSelection[String(rowId)]));
 
   return (
-    <div className={styles.scroll}>
+    <div
+      className={styles.scroll}
+      style={
+        contentHeight
+          ? {
+              height: contentHeight,
+              overflowY: "auto",
+            }
+          : undefined
+      }
+    >
       {isLoading && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingCard}>Đang tải...</div>
@@ -978,6 +991,7 @@ function DataGridInner<T extends GridRow>(
       </div>
 
       <DataGridTable
+        contentHeight={props.contentHeight}
         emptyMessage={props.emptyMessage ?? "Không có dữ liệu phù hợp"}
         enableColumnFilters={props.enableColumnFilters ?? true}
         enableResize={props.enableResize ?? true}
