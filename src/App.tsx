@@ -273,7 +273,9 @@ function App() {
       >
         Lấy dòng đã chọn
       </button>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+      <div
+        style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}
+      >
         <button
           onClick={() =>
             gridRef.current?.api.setColumnsVisible(["dept", "role"], false)
@@ -349,7 +351,7 @@ function App() {
         rowCount={processedRows.length}
         sorting={sorting}
         getRowId={(row) => row.id}
-        onDataSourceChange={setDataSource}
+        // onDataSourceChange={setDataSource}
         onColumnFiltersChange={setColumnFilters}
         onGlobalFilterChange={setGlobalFilter}
         onPaginationChange={setPagination}

@@ -1,10 +1,5 @@
 import { forwardRef, useImperativeHandle } from "react";
-import type {
-  CSSProperties,
-  MouseEvent,
-  ReactElement,
-  Ref,
-} from "react";
+import type { CSSProperties, MouseEvent, ReactElement, Ref } from "react";
 import { flexRender } from "@tanstack/react-table";
 import type {
   Column,
@@ -21,6 +16,7 @@ import type {
   DataGridRef,
   GridRow,
 } from "./DataGrid.types";
+import Spinner from "./Spinner/Spinner";
 
 const cx = (...classNames: Array<string | false | null | undefined>) =>
   classNames.filter(Boolean).join(" ");
@@ -111,268 +107,286 @@ function DataGridTable<T extends GridRow>({
           : undefined
       }
     >
-      {isLoading && (
-        <div className={styles.loadingOverlay}>
-          <div className={styles.loadingCard}>Đang tải...</div>
-        </div>
-      )}
+      <div className={styles.scrollContent}>
+        {isLoading && (
+          <div className={styles.loadingOverlay}>
+            {/* <div className={styles.loadingCard}>Đang tải...</div> */}
+            <div className={styles.loadingCard}>
+              <Spinner />
+            </div>
+          </div>
+        )}
 
-      <table className={styles.table} style={{ width: table.getTotalSize() }}>
-        <thead>
-          {headers.map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const alignClassName = getAlignClassName(
-                  header.column.columnDef.meta?.align,
-                );
-                const pinnedStyles = getPinnedColumnStyles(header.column, true);
-                const hasCheckbox = header.column.columnDef.meta?.hasCheckbox;
-                const canSort = header.column.getCanSort();
-                const activeSort = sorting.find(
-                  (item) => String(item.id) === String(header.column.id),
-                );
-                const sortedFromColumn = header.column.getIsSorted();
-                const sortingDirection: false | "asc" | "desc" = activeSort
-                  ? activeSort.desc
-                    ? "desc"
-                    : "asc"
-                  : sortedFromColumn === "asc" || sortedFromColumn === "desc"
-                    ? sortedFromColumn
-                    : false;
-
-                const handleSortClick = (event: MouseEvent<HTMLDivElement>) => {
-                  if (
-                    (event.target as HTMLElement).closest(
-                      "[data-grid-resize-handle='true']",
-                    )
-                  ) {
-                    return;
-                  }
-                  if (!canSort) {
-                    return;
-                  }
-                  const nextOrder = header.column.getNextSortingOrder();
-                  if (!nextOrder) {
-                    header.column.clearSorting();
-                    return;
-                  }
-                  header.column.toggleSorting(nextOrder === "desc", false);
-                };
-
-                return (
-                  <th
-                    key={header.id}
-                    className={cx(
-                      styles.th,
-                      alignClassName,
-                      header.column.getIsPinned() && styles.thPinned,
-                      header.column.getIsPinned() === "left" &&
-                        styles.pinnedLeft,
-                      header.column.getIsPinned() === "right" &&
-                        styles.pinnedRight,
-                      canSort && styles.thSortable,
-                    )}
-                    style={{
-                      ...pinnedStyles,
-                      width: header.getSize(),
-                      minWidth: header.getSize(),
-                    }}
-                  >
-                    {header.isPlaceholder ? null : (
-                      <>
-                        <div
-                          className={cx(
-                            styles.headerClickTarget,
-                            canSort && styles.headerClickTargetSortable,
-                          )}
-                          onClick={handleSortClick}
-                        >
-                          <span
-                            className={cx(styles.headerContent, alignClassName)}
-                          >
-                            {hasCheckbox && (
-                              <input
-                                aria-label="Select all rows"
-                                className={styles.checkboxInput}
-                                checked={isAllPageRowsSelected}
-                                onChange={(event) => {
-                                  const checked = event.currentTarget.checked;
-                                  rows.forEach((row) => {
-                                    toggleRowSelected(row.original, checked);
-                                  });
-                                }}
-                                onDoubleClick={(event) =>
-                                  event.stopPropagation()
-                                }
-                                onClick={(event) => event.stopPropagation()}
-                                onMouseDown={(event) => event.stopPropagation()}
-                                onPointerDown={(event) =>
-                                  event.stopPropagation()
-                                }
-                                type="checkbox"
-                              />
-                            )}
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                            <SortIcon direction={sortingDirection} />
-                          </span>
-                        </div>
-                        {enableResize && header.column.getCanResize() && (
-                          <div
-                            data-grid-resize-handle="true"
-                            className={cx(
-                              styles.resizeHandle,
-                              header.column.getIsPinned() === "left" &&
-                                styles.resizeHandlePinnedLeft,
-                              header.column.getIsPinned() === "right" &&
-                                styles.resizeHandlePinnedRight,
-                            )}
-                            onClick={(event) => event.stopPropagation()}
-                            onDoubleClick={(event) => {
-                              event.stopPropagation();
-                              header.column.resetSize();
-                            }}
-                            onMouseDown={(event) => {
-                              event.stopPropagation();
-                              header.getResizeHandler()(event);
-                            }}
-                            onTouchStart={(event) => {
-                              event.stopPropagation();
-                              header.getResizeHandler()(event);
-                            }}
-                          />
-                        )}
-                      </>
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          ))}
-
-          {enableColumnFilters && (
-            <tr>
-              {leafHeaders.map((header) => {
-                const alignClassName = getAlignClassName(
-                  header.column.columnDef.meta?.align,
-                );
-                const pinnedStyles = getPinnedColumnStyles(header.column, true);
-                const filterType = header.column.columnDef.meta?.filterType;
-                const filterOptions =
-                  header.column.columnDef.meta?.filterOptions ?? [];
-                const filterValue = (header.column.getFilterValue() ??
-                  "") as string;
-
-                return (
-                  <th
-                    key={`${header.id}-filter`}
-                    className={cx(
-                      styles.filterTh,
-                      alignClassName,
-                      header.column.getIsPinned() && styles.filterThPinned,
-                      header.column.getIsPinned() === "left" &&
-                        styles.pinnedLeft,
-                      header.column.getIsPinned() === "right" &&
-                        styles.pinnedRight,
-                    )}
-                    style={{
-                      ...pinnedStyles,
-                      width: header.getSize(),
-                      minWidth: header.getSize(),
-                    }}
-                  >
-                    {header.column.getCanFilter() ? (
-                      filterType === "select" ? (
-                        <select
-                          className={styles.filterInput}
-                          value={filterValue}
-                          onChange={(event) =>
-                            header.column.setFilterValue(event.target.value)
-                          }
-                        >
-                          {filterOptions.map((option) => (
-                            <option key={option} value={option}>
-                              {option || "Tất cả"}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          className={styles.filterInput}
-                          type="text"
-                          placeholder="Lọc..."
-                          value={filterValue}
-                          onChange={(event) =>
-                            header.column.setFilterValue(event.target.value)
-                          }
-                        />
-                      )
-                    ) : null}
-                  </th>
-                );
-              })}
-            </tr>
-          )}
-        </thead>
-
-        <tbody>
-          {rows.length === 0 ? (
-            <tr>
-              <td
-                className={cx(styles.td, styles.emptyState)}
-                colSpan={leafHeaders.length}
-              >
-                {emptyMessage}
-              </td>
-            </tr>
-          ) : (
-            rows.map((row) => (
-              <tr
-                key={row.id}
-                className={cx(
-                  rowSelection[String(row.id)] && styles.rowSelected,
-                )}
-                onClick={() => onRowClick?.(row.original)}
-                onDoubleClick={() => onRowDoubleClick?.(row.original)}
-              >
-                {row.getVisibleCells().map((cell) => {
+        <table className={styles.table} style={{ width: table.getTotalSize() }}>
+          <thead>
+            {headers.map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
                   const alignClassName = getAlignClassName(
-                    cell.column.columnDef.meta?.align,
+                    header.column.columnDef.meta?.align,
                   );
-                  const pinnedStyles = getPinnedColumnStyles(cell.column);
+                  const pinnedStyles = getPinnedColumnStyles(
+                    header.column,
+                    true,
+                  );
+                  const hasCheckbox = header.column.columnDef.meta?.hasCheckbox;
+                  const canSort = header.column.getCanSort();
+                  const activeSort = sorting.find(
+                    (item) => String(item.id) === String(header.column.id),
+                  );
+                  const sortedFromColumn = header.column.getIsSorted();
+                  const sortingDirection: false | "asc" | "desc" = activeSort
+                    ? activeSort.desc
+                      ? "desc"
+                      : "asc"
+                    : sortedFromColumn === "asc" || sortedFromColumn === "desc"
+                      ? sortedFromColumn
+                      : false;
+
+                  const handleSortClick = (
+                    event: MouseEvent<HTMLDivElement>,
+                  ) => {
+                    if (
+                      (event.target as HTMLElement).closest(
+                        "[data-grid-resize-handle='true']",
+                      )
+                    ) {
+                      return;
+                    }
+                    if (!canSort) {
+                      return;
+                    }
+                    const nextOrder = header.column.getNextSortingOrder();
+                    if (!nextOrder) {
+                      header.column.clearSorting();
+                      return;
+                    }
+                    header.column.toggleSorting(nextOrder === "desc", false);
+                  };
 
                   return (
-                    <td
-                      key={cell.id}
+                    <th
+                      key={header.id}
                       className={cx(
-                        styles.td,
+                        styles.th,
                         alignClassName,
-                        cell.column.getIsPinned() && styles.tdPinned,
-                        cell.column.getIsPinned() === "left" &&
+                        header.column.getIsPinned() && styles.thPinned,
+                        header.column.getIsPinned() === "left" &&
                           styles.pinnedLeft,
-                        cell.column.getIsPinned() === "right" &&
+                        header.column.getIsPinned() === "right" &&
+                          styles.pinnedRight,
+                        canSort && styles.thSortable,
+                      )}
+                      style={{
+                        ...pinnedStyles,
+                        width: header.getSize(),
+                        minWidth: header.getSize(),
+                      }}
+                    >
+                      {header.isPlaceholder ? null : (
+                        <>
+                          <div
+                            className={cx(
+                              styles.headerClickTarget,
+                              canSort && styles.headerClickTargetSortable,
+                            )}
+                            onClick={handleSortClick}
+                          >
+                            <span
+                              className={cx(
+                                styles.headerContent,
+                                alignClassName,
+                              )}
+                            >
+                              {hasCheckbox && (
+                                <input
+                                  aria-label="Select all rows"
+                                  className={styles.checkboxInput}
+                                  checked={isAllPageRowsSelected}
+                                  onChange={(event) => {
+                                    const checked = event.currentTarget.checked;
+                                    rows.forEach((row) => {
+                                      toggleRowSelected(row.original, checked);
+                                    });
+                                  }}
+                                  onDoubleClick={(event) =>
+                                    event.stopPropagation()
+                                  }
+                                  onClick={(event) => event.stopPropagation()}
+                                  onMouseDown={(event) =>
+                                    event.stopPropagation()
+                                  }
+                                  onPointerDown={(event) =>
+                                    event.stopPropagation()
+                                  }
+                                  type="checkbox"
+                                />
+                              )}
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                              <SortIcon direction={sortingDirection} />
+                            </span>
+                          </div>
+                          {enableResize && header.column.getCanResize() && (
+                            <div
+                              data-grid-resize-handle="true"
+                              className={cx(
+                                styles.resizeHandle,
+                                header.column.getIsPinned() === "left" &&
+                                  styles.resizeHandlePinnedLeft,
+                                header.column.getIsPinned() === "right" &&
+                                  styles.resizeHandlePinnedRight,
+                              )}
+                              onClick={(event) => event.stopPropagation()}
+                              onDoubleClick={(event) => {
+                                event.stopPropagation();
+                                header.column.resetSize();
+                              }}
+                              onMouseDown={(event) => {
+                                event.stopPropagation();
+                                header.getResizeHandler()(event);
+                              }}
+                              onTouchStart={(event) => {
+                                event.stopPropagation();
+                                header.getResizeHandler()(event);
+                              }}
+                            />
+                          )}
+                        </>
+                      )}
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+
+            {enableColumnFilters && (
+              <tr>
+                {leafHeaders.map((header) => {
+                  const alignClassName = getAlignClassName(
+                    header.column.columnDef.meta?.align,
+                  );
+                  const pinnedStyles = getPinnedColumnStyles(
+                    header.column,
+                    true,
+                  );
+                  const filterType = header.column.columnDef.meta?.filterType;
+                  const filterOptions =
+                    header.column.columnDef.meta?.filterOptions ?? [];
+                  const filterValue = (header.column.getFilterValue() ??
+                    "") as string;
+
+                  return (
+                    <th
+                      key={`${header.id}-filter`}
+                      className={cx(
+                        styles.filterTh,
+                        alignClassName,
+                        header.column.getIsPinned() && styles.filterThPinned,
+                        header.column.getIsPinned() === "left" &&
+                          styles.pinnedLeft,
+                        header.column.getIsPinned() === "right" &&
                           styles.pinnedRight,
                       )}
                       style={{
                         ...pinnedStyles,
-                        width: cell.column.getSize(),
-                        minWidth: cell.column.getSize(),
+                        width: header.getSize(),
+                        minWidth: header.getSize(),
                       }}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
+                      {header.column.getCanFilter() ? (
+                        filterType === "select" ? (
+                          <select
+                            className={styles.filterInput}
+                            value={filterValue}
+                            onChange={(event) =>
+                              header.column.setFilterValue(event.target.value)
+                            }
+                          >
+                            {filterOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option || "Tất cả"}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            className={styles.filterInput}
+                            type="text"
+                            placeholder="Lọc..."
+                            value={filterValue}
+                            onChange={(event) =>
+                              header.column.setFilterValue(event.target.value)
+                            }
+                          />
+                        )
+                      ) : null}
+                    </th>
                   );
                 })}
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            )}
+          </thead>
+
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td
+                  className={cx(styles.td, styles.emptyState)}
+                  colSpan={leafHeaders.length}
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            ) : (
+              rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className={cx(
+                    rowSelection[String(row.id)] && styles.rowSelected,
+                  )}
+                  onClick={() => onRowClick?.(row.original)}
+                  onDoubleClick={() => onRowDoubleClick?.(row.original)}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const alignClassName = getAlignClassName(
+                      cell.column.columnDef.meta?.align,
+                    );
+                    const pinnedStyles = getPinnedColumnStyles(cell.column);
+
+                    return (
+                      <td
+                        key={cell.id}
+                        className={cx(
+                          styles.td,
+                          alignClassName,
+                          cell.column.getIsPinned() && styles.tdPinned,
+                          cell.column.getIsPinned() === "left" &&
+                            styles.pinnedLeft,
+                          cell.column.getIsPinned() === "right" &&
+                            styles.pinnedRight,
+                        )}
+                        style={{
+                          ...pinnedStyles,
+                          width: cell.column.getSize(),
+                          minWidth: cell.column.getSize(),
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
