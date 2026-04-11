@@ -29,6 +29,7 @@ const gridRef = useRef<DataGridRef<Row>>(null);
   ref={gridRef}
   columns={columns}
   data={rows}
+  contentHeight={420}
   getRowId={(row) => row.id}
 />;
 ```
