@@ -9,4 +9,4 @@ export type {
   DataGridTransaction,
   DataGridTransactionResult,
   GridRow,
-} from "./DataGrid";
+} from "./DataGrid.types";
