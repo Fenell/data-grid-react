@@ -423,7 +423,7 @@ function DataGridInner<T extends GridRow>(
         contentHeight={props.contentHeight}
         emptyMessage={props.emptyMessage ?? "Không có dữ liệu phù hợp"}
         enableColumnFilters={props.enableColumnFilters ?? true}
-        enableResize={props.enableResize ?? true}
+        enableResize={props.enableResize ?? false}
         isLoading={props.isLoading ?? false}
         onRowClick={props.onRowClick}
         onRowDoubleClick={props.onRowDoubleClick}
