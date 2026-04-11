@@ -193,7 +193,7 @@
 .th {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 3;
   padding: 8px 12px;
   /* padding-right: 24px; */
   background: var(--grid-bg-header);
@@ -209,7 +209,7 @@
 
 .thPinned {
   left: 0;
-  z-index: 8;
+  z-index: 9;
   background: var(--grid-bg-header);
 }
 
@@ -236,7 +236,7 @@
   position: absolute;
   top: 0;
   right: 0px;
-  z-index: 9;
+  z-index: 4;
   width: 12px;
   height: 100%;
   padding: 0;
@@ -249,11 +249,13 @@
 
 .resizeHandlePinnedLeft {
   right: -1px;
+  z-index: 10;
 }
 
 .resizeHandlePinnedRight {
   right: auto;
   left: -1px;
+  z-index: 10;
 }
 
 .resizeHandle::before {
@@ -299,14 +301,14 @@
 .filterTh {
   position: sticky;
   top: var(--grid-header-row-height);
-  z-index: 4;
+  z-index: 2;
   padding: 3px 8px;
   background: var(--grid-bg-base);
 }
 
 .filterThPinned {
   left: 0;
-  z-index: 7;
+  z-index: 8;
   background: var(--grid-bg-base);
 }
 

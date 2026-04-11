@@ -310,7 +310,7 @@ function getPinnedColumnStyles<T extends GridRow>(
     left: pinned === "left" ? `${column.getStart("left")}px` : undefined,
     right: pinned === "right" ? `${column.getAfter("right")}px` : undefined,
     position: "sticky",
-    zIndex: isHeader ? 3 : 1,
+    zIndex: isHeader ? 4 : 1,
   };
 }
 
@@ -1018,7 +1018,9 @@ function DataGridInner<T extends GridRow>(
           <button
             className={styles.pageButton}
             disabled={paginationState.pageIndex <= 0}
-            onClick={() => setPageIndex(Math.max(paginationState.pageIndex - 1, 0))}
+            onClick={() =>
+              setPageIndex(Math.max(paginationState.pageIndex - 1, 0))
+            }
             type="button"
           >
             ‹
@@ -1073,8 +1075,7 @@ function DataGridInner<T extends GridRow>(
             {resolvedRowCount === 0
               ? "0 / 0"
               : `${paginationState.pageIndex * paginationState.pageSize + 1}–${Math.min(
-                  (paginationState.pageIndex + 1) *
-                    paginationState.pageSize,
+                  (paginationState.pageIndex + 1) * paginationState.pageSize,
                   resolvedRowCount,
                 )} / ${resolvedRowCount}`}
           </span>
