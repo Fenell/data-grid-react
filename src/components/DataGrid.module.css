@@ -38,16 +38,6 @@
   font-size: var(--grid-font-size);
 }
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-
-.input,
-.button,
 .filterInput,
 .pageButton,
 .pageSelect {
@@ -58,57 +48,13 @@
   font-size: var(--grid-font-size);
 }
 
-.input {
-  flex: 1;
-  min-width: 180px;
-  height: 32px;
-  padding: 0 10px;
-  outline: none;
-}
-
-.button {
-  height: 32px;
-  padding: 0 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.colMenuWrap {
-  position: relative;
-}
-
-.colMenu {
-  position: absolute;
-  top: 36px;
-  right: 0;
-  z-index: 200;
-  min-width: 160px;
-  padding: 8px;
-  border: var(--grid-border-input);
-  border-radius: var(--grid-radius-md);
-  background: var(--grid-bg-base);
-}
-
-.colLabel {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-  border-radius: var(--grid-radius-sm);
-  cursor: pointer;
-  font-size: var(--grid-font-size);
-}
-
-.recordCount,
 .pageInfo,
 .pageIndicator,
-.pageEllipsis,
 .sortIcon {
   font-size: var(--grid-font-size-sm);
   color: var(--grid-text-secondary);
 }
 
-.recordCount,
 .pageInfo {
   margin-left: auto;
 }

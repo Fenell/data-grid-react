@@ -673,7 +673,6 @@ function useDataGridController<T extends GridRow>({
   getRowId,
   onDataSourceChange,
 }: DataGridProps<T>) {
-  const [colMenuOpen, setColMenuOpen] = useState(false);
   const [internalGlobalFilter, setInternalGlobalFilter] = useState("");
   const [internalColumnFilters, setInternalColumnFilters] =
     useState<ColumnFiltersState>([]);
@@ -902,15 +901,10 @@ function useDataGridController<T extends GridRow>({
   return {
     api,
     canPaginate,
-    colMenuOpen,
-    columnVisibility,
-    globalFilterState,
     paginationState,
     resolvedRowCount,
     rowSelection,
     rows,
-    setColMenuOpen,
-    setColumnVisibility,
     setPageIndex: (pageIndex: number) =>
       handlePaginationChange((current) => ({
         ...current,
@@ -935,15 +929,10 @@ function DataGridInner<T extends GridRow>(
   const {
     api,
     canPaginate,
-    colMenuOpen,
-    columnVisibility,
-    globalFilterState,
     paginationState,
     resolvedRowCount,
     rowSelection,
     rows,
-    setColMenuOpen,
-    setColumnVisibility,
     setPageIndex,
     setPageSize,
     sortingState,
@@ -961,55 +950,6 @@ function DataGridInner<T extends GridRow>(
 
   return (
     <div className={styles.wrap} style={{ width: props.width ?? "100%" }}>
-      <div className={styles.toolbar}>
-        {(props.enableGlobalFilter ?? true) && (
-          <input
-            className={styles.input}
-            placeholder="Tìm kiếm toàn bộ..."
-            value={globalFilterState}
-            onChange={(event) => table.setGlobalFilter(event.target.value)}
-          />
-        )}
-
-        {(props.enableColumnVisibility ?? true) && (
-          <div className={styles.colMenuWrap}>
-            <button
-              className={styles.button}
-              onClick={() => setColMenuOpen((current) => !current)}
-              type="button"
-            >
-              Hiện/ẩn cột ▾
-            </button>
-            {colMenuOpen && (
-              <div
-                className={styles.colMenu}
-                onMouseLeave={() => setColMenuOpen(false)}
-              >
-                {table.getAllLeafColumns().map((column) => (
-                  <label key={column.id} className={styles.colLabel}>
-                    <input
-                      type="checkbox"
-                      checked={columnVisibility[column.id] ?? true}
-                      disabled={!column.getCanHide()}
-                      onChange={(event) => {
-                        const checked = event.currentTarget.checked;
-                        setColumnVisibility((current) => ({
-                          ...current,
-                          [column.id]: checked,
-                        }));
-                      }}
-                    />
-                    {String(column.columnDef.header)}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        <span className={styles.recordCount}>{resolvedRowCount} bản ghi</span>
-      </div>
-
       <DataGridTable
         contentHeight={props.contentHeight}
         emptyMessage={props.emptyMessage ?? "Không có dữ liệu phù hợp"}
