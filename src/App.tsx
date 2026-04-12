@@ -316,7 +316,6 @@ function App() {
         enableColumnFilters={false}
         globalFilter={globalFilter}
         isLoading={isLoading}
-        serverSide
         pageCount={pageCount}
         pageSizeOptions={[5, 10, 20, 50]}
         pagination={pagination}

@@ -442,7 +442,23 @@ const DataGridInner = <T extends GridRow>(
             onClick={() => setPageIndex(0)}
             type="button"
           >
-            «
+            <svg
+              className="text-gray-800 dark:text-white"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="m17 16-4-4 4-4m-6 8-4-4 4-4"
+              />
+            </svg>
           </button>
           <button
             className={styles.pageButton}
@@ -452,7 +468,23 @@ const DataGridInner = <T extends GridRow>(
             }
             type="button"
           >
-            ‹
+            <svg
+              className="w-6 h-6 text-gray-800 dark:text-white"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m14 8-4 4 4 4"
+              />
+            </svg>
           </button>
 
           <span className={styles.pageIndicator}>
@@ -475,7 +507,23 @@ const DataGridInner = <T extends GridRow>(
             }
             type="button"
           >
-            ›
+            <svg
+              className="w-5 h-5 text-gray-600 dark:text-white"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m10 16 4-4-4-4"
+              />
+            </svg>
           </button>
           <button
             className={styles.pageButton}
@@ -485,7 +533,23 @@ const DataGridInner = <T extends GridRow>(
             onClick={() => setPageIndex(Math.max(table.getPageCount() - 1, 0))}
             type="button"
           >
-            »
+            <svg
+              className="text-gray-800 dark:text-white"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="m7 16 4-4-4-4m6 8 4-4-4-4"
+              />
+            </svg>
           </button>
 
           <select
