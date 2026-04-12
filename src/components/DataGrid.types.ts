@@ -73,9 +73,6 @@ export type DataGridPaginationModel = PaginationState & {
 
 export type DataGridServerPaginationProps = {
   serverSide?: boolean;
-  manualPagination?: boolean;
-  manualSorting?: boolean;
-  manualFiltering?: boolean;
   pagination?: DataGridPaginationModel;
   sorting?: SortingState;
   columnFilters?: ColumnFiltersState;
@@ -86,8 +83,6 @@ export type DataGridServerPaginationProps = {
   onColumnFiltersChange?: (updater: Updater<ColumnFiltersState>) => void;
   onGlobalFilterChange?: (value: string) => void;
   pageSizeOptions?: number[];
-  rowCount?: number;
-  pageCount?: number;
   isLoading?: boolean;
 };
 

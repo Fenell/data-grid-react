@@ -168,7 +168,7 @@ function App() {
 
   const processedRows = useMemo(() => {
     let nextRows = [...dataSource];
-
+    console.log(sorting);
     if (globalFilter) {
       const query = globalFilter.toLowerCase();
       nextRows = nextRows.filter((row) =>
@@ -323,20 +323,20 @@ function App() {
       <DataGrid<EmployeeRow>
         ref={gridRef}
         columns={employeeColumns}
-        data={allEmployees}
+        data={processedRows}
         contentHeight={420}
         enableColumnFilters={false}
         globalFilter={globalFilter}
         isLoading={isLoading}
-        serverSide={false}
-        // pagination={paginationModel}
-        // sorting={sorting}
+        serverSide
+        pagination={paginationModel}
+        sorting={sorting}
         getRowId={(row) => row.id}
-        // onGlobalFilterChange={setGlobalFilter}
-        // onPaginationChange={setPagination}
+        onGlobalFilterChange={setGlobalFilter}
+        onPaginationChange={setPagination}
         onRowClick={(row) => console.log("row click", row)}
         onRowDoubleClick={(row) => console.log("row double click", row)}
-        // onSortingChange={setSorting}
+        onSortingChange={setSorting}
       />
     </>
   );

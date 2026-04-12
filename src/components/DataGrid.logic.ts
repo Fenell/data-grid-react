@@ -169,9 +169,6 @@ export const useDataGridController = <T extends GridRow>({
   enableSort = true,
   enablePagination = true,
   serverSide = false,
-  manualPagination,
-  manualSorting,
-  manualFiltering,
   pagination,
   sorting,
   columnFilters,
@@ -181,8 +178,6 @@ export const useDataGridController = <T extends GridRow>({
   onSortingChange,
   onColumnFiltersChange,
   onGlobalFilterChange,
-  rowCount,
-  pageCount,
   pageSizeOptions = [5, 10, 20, 50],
   getRowId,
   onDataSourceChange,
@@ -205,8 +200,6 @@ export const useDataGridController = <T extends GridRow>({
         pageIndex: 0,
         pageSize: pageSizeOptions[0] ?? 10,
         pageSizeOptions,
-        totalRows: rowCount,
-        pageCount,
       },
     );
 
@@ -250,34 +243,27 @@ export const useDataGridController = <T extends GridRow>({
   const globalFilterState = controlledGlobalFilter ?? internalGlobalFilter;
   const resolvedPageSizeOptions =
     paginationModel.pageSizeOptions ?? pageSizeOptions;
-  const resolvedServerRowCount = paginationModel.totalRows ?? rowCount;
-  const resolvedServerPageCount = paginationModel.pageCount ?? pageCount;
-  const resolvedManualPagination = manualPagination ?? serverSide;
-  const resolvedManualSorting = manualSorting ?? serverSide;
-  const resolvedManualFiltering = manualFiltering ?? serverSide;
+  const resolvedServerRowCount = paginationModel.totalRows;
+  const resolvedServerPageCount = paginationModel.pageCount;
 
   const handlePaginationChange = (
     updater:
       | DataGridPaginationModel
       | ((old: DataGridPaginationModel) => DataGridPaginationModel),
   ) => {
-    const nextUpdater =
-      typeof updater === "function"
-        ? updater
-        : () => updater;
+    const nextUpdater = typeof updater === "function" ? updater : () => updater;
 
     if (pagination === undefined) {
       setInternalPagination(updater);
     }
     onPaginationChange?.((current) => {
-      const base =
-        current ?? {
-          pageIndex: 0,
-          pageSize: resolvedPageSizeOptions[0] ?? 10,
-          pageSizeOptions: resolvedPageSizeOptions,
-          totalRows: resolvedServerRowCount,
-          pageCount: resolvedServerPageCount,
-        };
+      const base = current ?? {
+        pageIndex: 0,
+        pageSize: resolvedPageSizeOptions[0] ?? 10,
+        pageSizeOptions: resolvedPageSizeOptions,
+        totalRows: resolvedServerRowCount,
+        pageCount: resolvedServerPageCount,
+      };
       const next = nextUpdater(base);
 
       return {
@@ -340,9 +326,9 @@ export const useDataGridController = <T extends GridRow>({
     enableHiding: enableColumnVisibility,
     enableRowSelection: columns.some((column) => column.cell === "checkBox"),
     enableSorting: enableSort,
-    manualFiltering: resolvedManualFiltering,
-    manualPagination: resolvedManualPagination,
-    manualSorting: resolvedManualSorting,
+    manualFiltering: serverSide,
+    manualPagination: serverSide,
+    manualSorting: serverSide,
     onColumnFiltersChange: handleColumnFiltersChange,
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: handleGlobalFilterChange,
@@ -351,15 +337,13 @@ export const useDataGridController = <T extends GridRow>({
     onSortingChange: handleSortingChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel:
-      !resolvedManualFiltering && (enableGlobalFilter || enableColumnFilters)
+      !serverSide && (enableGlobalFilter || enableColumnFilters)
         ? getFilteredRowModel()
         : undefined,
     getPaginationRowModel:
-      !resolvedManualPagination && enablePagination
-        ? getPaginationRowModel()
-        : undefined,
+      !serverSide && enablePagination ? getPaginationRowModel() : undefined,
     getSortedRowModel:
-      !resolvedManualSorting && enableSort ? getSortedRowModel() : undefined,
+      !serverSide && enableSort ? getSortedRowModel() : undefined,
     getRowId: (row) => String(getRowId ? getRowId(row) : row.id),
     globalFilterFn: (row, _columnId, filterValue) =>
       Object.values(row.original).some((value) =>
@@ -422,10 +406,10 @@ export const useDataGridController = <T extends GridRow>({
   };
 
   const rows = table.getRowModel().rows;
-  const resolvedRowCount = resolvedManualPagination
+  const resolvedRowCount = serverSide
     ? (resolvedServerRowCount ?? localRows.length)
     : table.getFilteredRowModel().rows.length;
-  const resolvedPageCount = resolvedManualPagination
+  const resolvedPageCount = serverSide
     ? (resolvedServerPageCount ?? table.getPageCount())
     : table.getPageCount();
   const canPaginate = enablePagination && table.getPageCount() > 0;
