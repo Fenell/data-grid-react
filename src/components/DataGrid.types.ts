@@ -65,20 +65,27 @@ export type DataGridFeatureFlags = {
   enablePagination?: boolean;
 };
 
+export type DataGridPaginationModel = PaginationState & {
+  pageSizeOptions?: number[];
+  totalRows?: number;
+  pageCount?: number;
+};
+
 export type DataGridServerPaginationProps = {
   serverSide?: boolean;
   manualPagination?: boolean;
   manualSorting?: boolean;
   manualFiltering?: boolean;
-  pagination?: PaginationState;
+  pagination?: DataGridPaginationModel;
   sorting?: SortingState;
   columnFilters?: ColumnFiltersState;
   globalFilter?: string;
-  defaultPagination?: PaginationState;
-  onPaginationChange?: (updater: Updater<PaginationState>) => void;
+  defaultPagination?: DataGridPaginationModel;
+  onPaginationChange?: (updater: Updater<DataGridPaginationModel>) => void;
   onSortingChange?: (updater: Updater<SortingState>) => void;
   onColumnFiltersChange?: (updater: Updater<ColumnFiltersState>) => void;
   onGlobalFilterChange?: (value: string) => void;
+  pageSizeOptions?: number[];
   rowCount?: number;
   pageCount?: number;
   isLoading?: boolean;
@@ -120,7 +127,6 @@ export type DataGridProps<T extends GridRow> = DataGridFeatureFlags &
     data: T[];
     width?: CSSProperties["width"];
     contentHeight?: CSSProperties["height"];
-    pageSizeOptions?: number[];
     emptyMessage?: string;
     getRowId?: (row: T) => string | number;
     onDataSourceChange?: (rows: T[]) => void;

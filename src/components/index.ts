@@ -3,6 +3,7 @@ export type {
   ColumnDef,
   DataGridApi,
   DataGridFeatureFlags,
+  DataGridPaginationModel,
   DataGridProps,
   DataGridRef,
   DataGridServerPaginationProps,

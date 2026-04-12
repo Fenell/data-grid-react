@@ -20,6 +20,7 @@ import type {
 import type {
   ColumnDef,
   DataGridApi,
+  DataGridPaginationModel,
   DataGridProps,
   DataGridTransaction,
   DataGridTransactionResult,
@@ -198,9 +199,16 @@ export const useDataGridController = <T extends GridRow>({
   );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [localRows, setLocalRows] = useState<T[]>(data);
-  const [internalPagination, setInternalPagination] = useState<PaginationState>(
-    defaultPagination ?? { pageIndex: 0, pageSize: pageSizeOptions[0] ?? 10 },
-  );
+  const [internalPagination, setInternalPagination] =
+    useState<DataGridPaginationModel>(
+      defaultPagination ?? {
+        pageIndex: 0,
+        pageSize: pageSizeOptions[0] ?? 10,
+        pageSizeOptions,
+        totalRows: rowCount,
+        pageCount,
+      },
+    );
 
   const resolveRowId = (row: T) => String(getRowId ? getRowId(row) : row.id);
   const isRowSelected = (row: T) => Boolean(rowSelection[resolveRowId(row)]);
@@ -232,21 +240,54 @@ export const useDataGridController = <T extends GridRow>({
       }),
     [columns, rowSelection],
   );
-  const paginationState = pagination ?? internalPagination;
+  const paginationModel = pagination ?? internalPagination;
+  const paginationState: PaginationState = {
+    pageIndex: paginationModel.pageIndex,
+    pageSize: paginationModel.pageSize,
+  };
   const sortingState = sorting ?? internalSorting;
   const columnFiltersState = columnFilters ?? internalColumnFilters;
   const globalFilterState = controlledGlobalFilter ?? internalGlobalFilter;
+  const resolvedPageSizeOptions =
+    paginationModel.pageSizeOptions ?? pageSizeOptions;
+  const resolvedServerRowCount = paginationModel.totalRows ?? rowCount;
+  const resolvedServerPageCount = paginationModel.pageCount ?? pageCount;
   const resolvedManualPagination = manualPagination ?? serverSide;
   const resolvedManualSorting = manualSorting ?? serverSide;
   const resolvedManualFiltering = manualFiltering ?? serverSide;
 
   const handlePaginationChange = (
-    updater: PaginationState | ((old: PaginationState) => PaginationState),
+    updater:
+      | DataGridPaginationModel
+      | ((old: DataGridPaginationModel) => DataGridPaginationModel),
   ) => {
-    if (!pagination) {
+    const nextUpdater =
+      typeof updater === "function"
+        ? updater
+        : () => updater;
+
+    if (pagination === undefined) {
       setInternalPagination(updater);
     }
-    onPaginationChange?.(updater);
+    onPaginationChange?.((current) => {
+      const base =
+        current ?? {
+          pageIndex: 0,
+          pageSize: resolvedPageSizeOptions[0] ?? 10,
+          pageSizeOptions: resolvedPageSizeOptions,
+          totalRows: resolvedServerRowCount,
+          pageCount: resolvedServerPageCount,
+        };
+      const next = nextUpdater(base);
+
+      return {
+        ...base,
+        ...next,
+        pageSizeOptions: next.pageSizeOptions ?? base.pageSizeOptions,
+        totalRows: next.totalRows ?? base.totalRows,
+        pageCount: next.pageCount ?? base.pageCount,
+      };
+    });
   };
 
   const handleSortingChange = (
@@ -326,8 +367,8 @@ export const useDataGridController = <T extends GridRow>({
           .toLowerCase()
           .includes(String(filterValue ?? "").toLowerCase()),
       ),
-    rowCount,
-    pageCount,
+    rowCount: resolvedServerRowCount,
+    pageCount: resolvedServerPageCount,
     columnResizeMode: "onChange",
     autoResetPageIndex: false,
   });
@@ -382,8 +423,11 @@ export const useDataGridController = <T extends GridRow>({
 
   const rows = table.getRowModel().rows;
   const resolvedRowCount = resolvedManualPagination
-    ? (rowCount ?? localRows.length)
+    ? (resolvedServerRowCount ?? localRows.length)
     : table.getFilteredRowModel().rows.length;
+  const resolvedPageCount = resolvedManualPagination
+    ? (resolvedServerPageCount ?? table.getPageCount())
+    : table.getPageCount();
   const canPaginate = enablePagination && table.getPageCount() > 0;
 
   const api: DataGridApi<T> = {
@@ -419,7 +463,14 @@ export const useDataGridController = <T extends GridRow>({
   return {
     api,
     canPaginate,
-    paginationState,
+    paginationModel: {
+      ...paginationModel,
+      pageIndex: paginationState.pageIndex,
+      pageSize: paginationState.pageSize,
+      pageSizeOptions: resolvedPageSizeOptions,
+      totalRows: resolvedRowCount,
+      pageCount: resolvedPageCount,
+    },
     resolvedRowCount,
     rowSelection,
     rows,

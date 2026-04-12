@@ -1,8 +1,12 @@
 import "./App.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PaginationState, SortingState } from "@tanstack/react-table";
+import type { SortingState } from "@tanstack/react-table";
 
-import DataGrid, { type ColumnDef, type DataGridRef } from "./components/";
+import DataGrid, {
+  type ColumnDef,
+  type DataGridPaginationModel,
+  type DataGridRef,
+} from "./components/";
 import {
   allEmployees,
   DEPTS,
@@ -154,9 +158,10 @@ function App() {
   const dataSource = allEmployees;
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState<PaginationState>({
+  const [pagination, setPagination] = useState<DataGridPaginationModel>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 20,
+    pageSizeOptions: [20, 50, 80],
   });
   const [pageRows, setPageRows] = useState<EmployeeRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -193,23 +198,30 @@ function App() {
     return nextRows;
   }, [dataSource, globalFilter, sorting]);
 
-  const pageCount = useMemo(
-    () => Math.ceil(processedRows.length / pagination.pageSize),
-    [pagination.pageSize, processedRows.length],
+  const paginationModel = useMemo(
+    () => ({
+      ...pagination,
+      pageCount: Math.max(
+        1,
+        Math.ceil(processedRows.length / pagination.pageSize || 1),
+      ),
+      totalRows: processedRows.length,
+    }),
+    [pagination, processedRows.length],
   );
 
   useEffect(() => {
     setIsLoading(true);
 
     const timer = window.setTimeout(() => {
-      const start = pagination.pageIndex * pagination.pageSize;
-      const end = start + pagination.pageSize;
+      const start = paginationModel.pageIndex * paginationModel.pageSize;
+      const end = start + paginationModel.pageSize;
       setPageRows(processedRows.slice(start, end));
       setIsLoading(false);
     }, 250);
 
     return () => window.clearTimeout(timer);
-  }, [pagination, processedRows]);
+  }, [paginationModel, processedRows]);
 
   useEffect(() => {
     setPagination((current) => ({
@@ -311,23 +323,20 @@ function App() {
       <DataGrid<EmployeeRow>
         ref={gridRef}
         columns={employeeColumns}
-        data={pageRows}
+        data={allEmployees}
         contentHeight={420}
         enableColumnFilters={false}
         globalFilter={globalFilter}
         isLoading={isLoading}
-        pageCount={pageCount}
-        serverSide
-        pageSizeOptions={[5, 10, 20, 50]}
-        pagination={pagination}
-        rowCount={processedRows.length}
-        sorting={sorting}
+        serverSide={false}
+        // pagination={paginationModel}
+        // sorting={sorting}
         getRowId={(row) => row.id}
-        onGlobalFilterChange={setGlobalFilter}
-        onPaginationChange={setPagination}
+        // onGlobalFilterChange={setGlobalFilter}
+        // onPaginationChange={setPagination}
         onRowClick={(row) => console.log("row click", row)}
         onRowDoubleClick={(row) => console.log("row double click", row)}
-        onSortingChange={setSorting}
+        // onSortingChange={setSorting}
       />
     </>
   );

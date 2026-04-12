@@ -406,7 +406,7 @@ const DataGridInner = <T extends GridRow>(
   const {
     api,
     canPaginate,
-    paginationState,
+    paginationModel,
     resolvedRowCount,
     rowSelection,
     rows,
@@ -465,16 +465,17 @@ const DataGridInner = <T extends GridRow>(
           <div className={styles.pageSelectWrap} ref={pageSizeMenuRef}>
             {pageSizeMenuOpen && (
               <div className={styles.pageSelectMenu} role="listbox">
-                {(props.pageSizeOptions ?? [5, 10, 20, 50]).map((size) => (
+                {(paginationModel.pageSizeOptions ?? [5, 10, 20, 50]).map(
+                  (size) => (
                   <div
                     key={size}
                     className={cx(
                       styles.pageSelectOption,
-                      paginationState.pageSize === size &&
+                      paginationModel.pageSize === size &&
                         styles.pageSelectOptionActive,
                     )}
                     role="option"
-                    aria-selected={paginationState.pageSize === size}
+                    aria-selected={paginationModel.pageSize === size}
                     onClick={() => {
                       setPageSize(size);
                       setPageSizeMenuOpen(false);
@@ -482,7 +483,8 @@ const DataGridInner = <T extends GridRow>(
                   >
                     {size}
                   </div>
-                ))}
+                  ),
+                )}
               </div>
             )}
 
@@ -493,7 +495,7 @@ const DataGridInner = <T extends GridRow>(
               aria-haspopup="listbox"
               aria-expanded={pageSizeMenuOpen}
             >
-              <span>{paginationState.pageSize}</span>
+              <span>{paginationModel.pageSize}</span>
               <span
                 className={cx(
                   styles.pageSelectChevron,
@@ -523,8 +525,8 @@ const DataGridInner = <T extends GridRow>(
           <span className={styles.pageInfo}>
             {resolvedRowCount === 0
               ? "0-0 of 0"
-              : `${paginationState.pageIndex * paginationState.pageSize + 1}-${Math.min(
-                  (paginationState.pageIndex + 1) * paginationState.pageSize,
+              : `${paginationModel.pageIndex * paginationModel.pageSize + 1}-${Math.min(
+                  (paginationModel.pageIndex + 1) * paginationModel.pageSize,
                   resolvedRowCount,
                 )} of ${resolvedRowCount}`}
           </span>
@@ -533,7 +535,7 @@ const DataGridInner = <T extends GridRow>(
             <div className={styles.pageButtonGroup}>
               <button
                 className={styles.pageButton}
-                disabled={paginationState.pageIndex <= 0}
+                disabled={paginationModel.pageIndex <= 0}
                 onClick={() => setPageIndex(0)}
                 type="button"
               >
@@ -557,9 +559,9 @@ const DataGridInner = <T extends GridRow>(
               </button>
               <button
                 className={styles.pageButton}
-                disabled={paginationState.pageIndex <= 0}
+                disabled={paginationModel.pageIndex <= 0}
                 onClick={() =>
-                  setPageIndex(Math.max(paginationState.pageIndex - 1, 0))
+                  setPageIndex(Math.max(paginationModel.pageIndex - 1, 0))
                 }
                 type="button"
               >
@@ -582,20 +584,26 @@ const DataGridInner = <T extends GridRow>(
                 </svg>
               </button>
               <span className={styles.pageIndicator}>
-                Trang {paginationState.pageIndex + 1} /{" "}
-                {Math.max(table.getPageCount(), 1)}
+                Trang {paginationModel.pageIndex + 1} /{" "}
+                {Math.max(paginationModel.pageCount ?? table.getPageCount(), 1)}
               </span>
               <button
                 className={styles.pageButton}
                 disabled={
-                  paginationState.pageIndex >=
-                  Math.max(table.getPageCount() - 1, 0)
+                  paginationModel.pageIndex >=
+                  Math.max(
+                    (paginationModel.pageCount ?? table.getPageCount()) - 1,
+                    0,
+                  )
                 }
                 onClick={() =>
                   setPageIndex(
                     Math.min(
-                      paginationState.pageIndex + 1,
-                      Math.max(table.getPageCount() - 1, 0),
+                      paginationModel.pageIndex + 1,
+                      Math.max(
+                        (paginationModel.pageCount ?? table.getPageCount()) - 1,
+                        0,
+                      ),
                     ),
                   )
                 }
@@ -622,11 +630,19 @@ const DataGridInner = <T extends GridRow>(
               <button
                 className={styles.pageButton}
                 disabled={
-                  paginationState.pageIndex >=
-                  Math.max(table.getPageCount() - 1, 0)
+                  paginationModel.pageIndex >=
+                  Math.max(
+                    (paginationModel.pageCount ?? table.getPageCount()) - 1,
+                    0,
+                  )
                 }
                 onClick={() =>
-                  setPageIndex(Math.max(table.getPageCount() - 1, 0))
+                  setPageIndex(
+                    Math.max(
+                      (paginationModel.pageCount ?? table.getPageCount()) - 1,
+                      0,
+                    ),
+                  )
                 }
                 type="button"
               >
