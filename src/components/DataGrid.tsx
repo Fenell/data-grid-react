@@ -31,10 +31,10 @@ function getAlignClassName(align: ColumnAlign | undefined) {
   return styles.alignLeft;
 }
 
-function getPinnedColumnStyles<T extends GridRow>(
+const getPinnedColumnStyles = <T extends GridRow>(
   column: Column<T>,
   isHeader = false,
-): CSSProperties {
+): CSSProperties => {
   const pinned = column.getIsPinned();
   if (!pinned) {
     return {};
@@ -45,9 +45,9 @@ function getPinnedColumnStyles<T extends GridRow>(
     position: "sticky",
     zIndex: isHeader ? 4 : 1,
   };
-}
+};
 
-function SortIcon({ direction }: { direction: false | "asc" | "desc" }) {
+const SortIcon = ({ direction }: { direction: false | "asc" | "desc" }) => {
   if (!direction) {
     return null;
   }
@@ -59,9 +59,9 @@ function SortIcon({ direction }: { direction: false | "asc" | "desc" }) {
       {direction === "asc" ? "↑" : "↓"}
     </span>
   );
-}
+};
 
-function DataGridTable<T extends GridRow>({
+const DataGridTable = <T extends GridRow>({
   contentHeight,
   emptyMessage,
   enableColumnFilters,
@@ -87,7 +87,7 @@ function DataGridTable<T extends GridRow>({
   sorting: SortingState;
   table: Table<T>;
   toggleRowSelected: (row: T, checked: boolean) => void;
-}) {
+}) => {
   const headers = table.getHeaderGroups();
   const leafHeaders = table.getLeafHeaders();
   const visiblePageRowIds = rows.map((row) => row.id);
@@ -389,12 +389,12 @@ function DataGridTable<T extends GridRow>({
       </div>
     </div>
   );
-}
+};
 
-function DataGridInner<T extends GridRow>(
+const DataGridInner = <T extends GridRow>(
   props: DataGridProps<T>,
   ref: Ref<DataGridRef<T>>,
-) {
+) => {
   const {
     api,
     canPaginate,
@@ -512,7 +512,7 @@ function DataGridInner<T extends GridRow>(
       )}
     </div>
   );
-}
+};
 
 const DataGrid = forwardRef(DataGridInner) as <T extends GridRow>(
   props: DataGridProps<T> & { ref?: Ref<DataGridRef<T>> },

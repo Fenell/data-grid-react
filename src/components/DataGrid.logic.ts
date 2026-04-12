@@ -26,23 +26,23 @@ import type {
   GridRow,
 } from "./DataGrid.types";
 
-function resolveColumnId<T extends GridRow>(
+const resolveColumnId = <T extends GridRow>(
   column: ColumnDef<T>,
   index: number,
-) {
+) => {
   if ("id" in column && column.id) {
     return String(column.id);
   }
   return `__checkbox_${index}`;
-}
+};
 
-function createTanStackColumns<T extends GridRow>(
+const createTanStackColumns = <T extends GridRow>(
   columns: ColumnDef<T>[],
   options: {
     isRowSelected: (row: T) => boolean;
     toggleRowSelected: (row: T, checked: boolean) => void;
   },
-): TanStackColumnDef<T>[] {
+): TanStackColumnDef<T>[] => {
   return columns.map((column, index) => {
     const columnId = resolveColumnId(column, index);
 
@@ -129,11 +129,11 @@ function createTanStackColumns<T extends GridRow>(
       },
     } satisfies TanStackColumnDef<T>;
   });
-}
+};
 
-function getInitialColumnPinning<T extends GridRow>(
+const getInitialColumnPinning = <T extends GridRow>(
   columns: ColumnDef<T>[],
-): ColumnPinningState {
+): ColumnPinningState => {
   return {
     left: columns
       .map((column, index) => ({ column, index }))
@@ -144,20 +144,20 @@ function getInitialColumnPinning<T extends GridRow>(
       .filter(({ column }) => column.pinned === "right")
       .map(({ column, index }) => resolveColumnId(column, index)),
   };
-}
+};
 
-function getInitialColumnVisibility<T extends GridRow>(
+const getInitialColumnVisibility = <T extends GridRow>(
   columns: ColumnDef<T>[],
-): VisibilityState {
+): VisibilityState => {
   return Object.fromEntries(
     columns.map((column, index) => [
       resolveColumnId(column, index),
       !column.hide,
     ]),
   );
-}
+};
 
-export function useDataGridController<T extends GridRow>({
+export const useDataGridController = <T extends GridRow>({
   columns,
   data,
   enableGlobalFilter = true,
@@ -184,7 +184,7 @@ export function useDataGridController<T extends GridRow>({
   pageSizeOptions = [5, 10, 20, 50],
   getRowId,
   onDataSourceChange,
-}: DataGridProps<T>) {
+}: DataGridProps<T>) => {
   const [internalGlobalFilter, setInternalGlobalFilter] = useState("");
   const [internalColumnFilters, setInternalColumnFilters] =
     useState<ColumnFiltersState>([]);
@@ -399,7 +399,9 @@ export function useDataGridController<T extends GridRow>({
     setColumnsVisible: (keys, visible) => {
       keys.forEach((key) => {
         const column =
-          typeof key === "string" ? table.getColumn(key) : table.getColumn(key.id);
+          typeof key === "string"
+            ? table.getColumn(key)
+            : table.getColumn(key.id);
 
         if (!column || !column.getCanHide()) {
           return;
@@ -432,4 +434,4 @@ export function useDataGridController<T extends GridRow>({
     table,
     toggleRowSelected,
   };
-}
+};
