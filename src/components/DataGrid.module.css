@@ -56,7 +56,7 @@
 }
 
 .pageInfo {
-  margin-left: auto;
+  /* margin-left: auto; */
 }
 
 .pageIndicator {
@@ -429,9 +429,23 @@ tbody tr:hover .td.pinnedRight {
 .pagination {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 12px;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pageButtonGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .pageButton {
@@ -439,13 +453,13 @@ tbody tr:hover .td.pinnedRight {
   align-items: center;
   min-width: 30px;
   height: 30px;
-  padding: 0 8px;
+  /* padding: 0 8px; */
   cursor: pointer;
 }
 
 .pageButton:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.4;
 }
 
 .pageButtonActive {
@@ -457,6 +471,61 @@ tbody tr:hover .td.pinnedRight {
 .pageSelect {
   height: 30px;
   padding: 0 8px;
+}
+
+.pageSelectWrap {
+  position: relative;
+}
+
+.pageSelectTrigger {
+  display: inline-flex;
+  min-width: 60px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  border: solid 1px #e9e9e9;
+  border-radius: 6px;
+}
+
+.pageSelectMenu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 3px);
+  z-index: 20;
+  min-width: 100%;
+  /* padding: 6px; */
+  /* border: var(--grid-border-input); */
+  border-radius: 4px;
+  background: var(--grid-bg-base);
+  box-shadow: 0 10px 24px rgba(41, 92, 155, 0.16);
+}
+
+.pageSelectOption {
+  padding: 7px 10px;
+  /* border-radius: var(--grid-radius-sm); */
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pageSelectOption:hover {
+  background: var(--grid-bg-row-hover);
+}
+
+.pageSelectOptionActive {
+  background: #e6f1fe;
+  color: var(--grid-accent-strong);
+  font-weight: 600;
+}
+
+.pageSelectChevron {
+  font-size: 10px;
+  line-height: 1;
+  transition: transform var(--grid-transition-fast);
+}
+
+.pageSelectChevronOpen {
+  /* transform: rotate(180deg); */
 }
 
 .checkboxInput,

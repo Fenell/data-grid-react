@@ -317,6 +317,7 @@ function App() {
         globalFilter={globalFilter}
         isLoading={isLoading}
         pageCount={pageCount}
+        serverSide
         pageSizeOptions={[5, 10, 20, 50]}
         pagination={pagination}
         rowCount={processedRows.length}

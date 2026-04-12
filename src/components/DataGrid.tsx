@@ -1,4 +1,10 @@
-import { forwardRef, useImperativeHandle } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import type { CSSProperties, MouseEvent, ReactElement, Ref } from "react";
 import { flexRender } from "@tanstack/react-table";
 import type {
@@ -395,6 +401,8 @@ const DataGridInner = <T extends GridRow>(
   props: DataGridProps<T>,
   ref: Ref<DataGridRef<T>>,
 ) => {
+  const [pageSizeMenuOpen, setPageSizeMenuOpen] = useState(false);
+  const pageSizeMenuRef = useRef<HTMLDivElement>(null);
   const {
     api,
     canPaginate,
@@ -417,6 +425,24 @@ const DataGridInner = <T extends GridRow>(
     [api],
   );
 
+  useEffect(() => {
+    if (!pageSizeMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        pageSizeMenuRef.current &&
+        !pageSizeMenuRef.current.contains(event.target as Node)
+      ) {
+        setPageSizeMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [pageSizeMenuOpen]);
+
   return (
     <div className={styles.wrap} style={{ width: props.width ?? "100%" }}>
       <DataGridTable
@@ -436,142 +462,194 @@ const DataGridInner = <T extends GridRow>(
 
       {(props.enablePagination ?? true) && canPaginate && (
         <div className={styles.pagination}>
-          <button
-            className={styles.pageButton}
-            disabled={paginationState.pageIndex <= 0}
-            onClick={() => setPageIndex(0)}
-            type="button"
-          >
-            <svg
-              className="text-gray-800 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="m17 16-4-4 4-4m-6 8-4-4 4-4"
-              />
-            </svg>
-          </button>
-          <button
-            className={styles.pageButton}
-            disabled={paginationState.pageIndex <= 0}
-            onClick={() =>
-              setPageIndex(Math.max(paginationState.pageIndex - 1, 0))
-            }
-            type="button"
-          >
-            <svg
-              className="w-6 h-6 text-gray-800 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="m14 8-4 4 4 4"
-              />
-            </svg>
-          </button>
+          <div className={styles.pageSelectWrap} ref={pageSizeMenuRef}>
+            {pageSizeMenuOpen && (
+              <div className={styles.pageSelectMenu} role="listbox">
+                {(props.pageSizeOptions ?? [5, 10, 20, 50]).map((size) => (
+                  <div
+                    key={size}
+                    className={cx(
+                      styles.pageSelectOption,
+                      paginationState.pageSize === size &&
+                        styles.pageSelectOptionActive,
+                    )}
+                    role="option"
+                    aria-selected={paginationState.pageSize === size}
+                    onClick={() => {
+                      setPageSize(size);
+                      setPageSizeMenuOpen(false);
+                    }}
+                  >
+                    {size}
+                  </div>
+                ))}
+              </div>
+            )}
 
-          <span className={styles.pageIndicator}>
-            Trang {paginationState.pageIndex + 1} /{" "}
-            {Math.max(table.getPageCount(), 1)}
-          </span>
-
-          <button
-            className={styles.pageButton}
-            disabled={
-              paginationState.pageIndex >= Math.max(table.getPageCount() - 1, 0)
-            }
-            onClick={() =>
-              setPageIndex(
-                Math.min(
-                  paginationState.pageIndex + 1,
-                  Math.max(table.getPageCount() - 1, 0),
-                ),
-              )
-            }
-            type="button"
-          >
-            <svg
-              className="w-5 h-5 text-gray-600 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
+            <button
+              className={cx(styles.pageSelect, styles.pageSelectTrigger)}
+              onClick={() => setPageSizeMenuOpen((current) => !current)}
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={pageSizeMenuOpen}
             >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="m10 16 4-4-4-4"
-              />
-            </svg>
-          </button>
-          <button
-            className={styles.pageButton}
-            disabled={
-              paginationState.pageIndex >= Math.max(table.getPageCount() - 1, 0)
-            }
-            onClick={() => setPageIndex(Math.max(table.getPageCount() - 1, 0))}
-            type="button"
-          >
-            <svg
-              className="text-gray-800 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="m7 16 4-4-4-4m6 8 4-4-4-4"
-              />
-            </svg>
-          </button>
-
-          <select
-            className={styles.pageSelect}
-            value={paginationState.pageSize}
-            onChange={(event) => setPageSize(Number(event.target.value))}
-          >
-            {(props.pageSizeOptions ?? [5, 10, 20, 50]).map((size) => (
-              <option key={size} value={size}>
-                {size} / trang
-              </option>
-            ))}
-          </select>
+              <span>{paginationState.pageSize}</span>
+              <span
+                className={cx(
+                  styles.pageSelectChevron,
+                  pageSizeMenuOpen && styles.pageSelectChevronOpen,
+                )}
+                aria-hidden="true"
+              >
+                <svg
+                  className=" text-gray-800 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18.425 10.271C19.499 8.967 18.57 7 16.88 7H7.12c-1.69 0-2.618 1.967-1.544 3.271l4.881 5.927a2 2 0 0 0 3.088 0l4.88-5.927Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
 
           <span className={styles.pageInfo}>
             {resolvedRowCount === 0
-              ? "0 / 0"
-              : `${paginationState.pageIndex * paginationState.pageSize + 1}–${Math.min(
+              ? "0-0 of 0"
+              : `${paginationState.pageIndex * paginationState.pageSize + 1}-${Math.min(
                   (paginationState.pageIndex + 1) * paginationState.pageSize,
                   resolvedRowCount,
-                )} / ${resolvedRowCount}`}
+                )} of ${resolvedRowCount}`}
           </span>
+
+          <div className={styles.paginationControls}>
+            <div className={styles.pageButtonGroup}>
+              <button
+                className={styles.pageButton}
+                disabled={paginationState.pageIndex <= 0}
+                onClick={() => setPageIndex(0)}
+                type="button"
+              >
+                <svg
+                  className="text-gray-800 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="m17 16-4-4 4-4m-6 8-4-4 4-4"
+                  />
+                </svg>
+              </button>
+              <button
+                className={styles.pageButton}
+                disabled={paginationState.pageIndex <= 0}
+                onClick={() =>
+                  setPageIndex(Math.max(paginationState.pageIndex - 1, 0))
+                }
+                type="button"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-800 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="m14 8-4 4 4 4"
+                  />
+                </svg>
+              </button>
+              <span className={styles.pageIndicator}>
+                Trang {paginationState.pageIndex + 1} /{" "}
+                {Math.max(table.getPageCount(), 1)}
+              </span>
+              <button
+                className={styles.pageButton}
+                disabled={
+                  paginationState.pageIndex >=
+                  Math.max(table.getPageCount() - 1, 0)
+                }
+                onClick={() =>
+                  setPageIndex(
+                    Math.min(
+                      paginationState.pageIndex + 1,
+                      Math.max(table.getPageCount() - 1, 0),
+                    ),
+                  )
+                }
+                type="button"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-600 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="m10 16 4-4-4-4"
+                  />
+                </svg>
+              </button>
+              <button
+                className={styles.pageButton}
+                disabled={
+                  paginationState.pageIndex >=
+                  Math.max(table.getPageCount() - 1, 0)
+                }
+                onClick={() =>
+                  setPageIndex(Math.max(table.getPageCount() - 1, 0))
+                }
+                type="button"
+              >
+                <svg
+                  className="text-gray-800 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="m7 16 4-4-4-4m6 8 4-4-4-4"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

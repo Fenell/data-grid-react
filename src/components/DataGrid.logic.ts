@@ -49,7 +49,7 @@ const createTanStackColumns = <T extends GridRow>(
     if (column.cell === "checkBox") {
       return {
         id: columnId,
-        header: column.label ?? "Chọn",
+        header: column.label ?? "",
         cell: ({ row }) =>
           createElement("input", {
             "aria-label": `Select row ${row.id}`,
