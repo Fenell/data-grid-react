@@ -66,6 +66,7 @@ export type DataGridFeatureFlags = {
 };
 
 export type DataGridServerPaginationProps = {
+  serverSide?: boolean;
   manualPagination?: boolean;
   manualSorting?: boolean;
   manualFiltering?: boolean;

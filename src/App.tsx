@@ -1,10 +1,6 @@
 import "./App.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type {
-  ColumnFiltersState,
-  PaginationState,
-  SortingState,
-} from "@tanstack/react-table";
+import type { PaginationState, SortingState } from "@tanstack/react-table";
 
 import DataGrid, { type ColumnDef, type DataGridRef } from "./components/";
 import {
@@ -117,7 +113,7 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
     options: ["", ...STATUSES],
     width: 130,
     align: "center",
-    pinned: "right",
+    // pinned: "right",
     cell: (row) => {
       const palette =
         row.status === "active"
@@ -155,9 +151,8 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
 
 function App() {
   const gridRef = useRef<DataGridRef<EmployeeRow>>(null);
-  const [dataSource, setDataSource] = useState<EmployeeRow[]>(allEmployees);
+  const dataSource = allEmployees;
   const [globalFilter, setGlobalFilter] = useState("");
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -180,20 +175,6 @@ function App() {
       );
     }
 
-    columnFilters.forEach((filter) => {
-      const value = String(filter.value ?? "").toLowerCase();
-      if (!value) {
-        return;
-      }
-
-      nextRows = nextRows.filter((row) => {
-        const cellValue = row[filter.id as keyof EmployeeRow];
-        return String(cellValue ?? "")
-          .toLowerCase()
-          .includes(value);
-      });
-    });
-
     if (sorting[0]) {
       const activeSort = sorting[0];
 
@@ -210,7 +191,7 @@ function App() {
     }
 
     return nextRows;
-  }, [columnFilters, dataSource, globalFilter, sorting]);
+  }, [dataSource, globalFilter, sorting]);
 
   const pageCount = useMemo(
     () => Math.ceil(processedRows.length / pagination.pageSize),
@@ -235,7 +216,7 @@ function App() {
       ...current,
       pageIndex: 0,
     }));
-  }, [columnFilters, globalFilter, sorting]);
+  }, [globalFilter, sorting]);
 
   return (
     <>
@@ -332,27 +313,16 @@ function App() {
         columns={employeeColumns}
         data={pageRows}
         contentHeight={420}
-        enableGlobalFilter={false}
         enableColumnFilters={false}
-        enableColumnVisibility
-        enablePinning
-        enableResize={true}
-        enableSort
-        enablePagination
-        columnFilters={columnFilters}
         globalFilter={globalFilter}
         isLoading={isLoading}
-        manualFiltering
-        manualPagination
-        manualSorting
+        serverSide
         pageCount={pageCount}
         pageSizeOptions={[5, 10, 20, 50]}
         pagination={pagination}
         rowCount={processedRows.length}
         sorting={sorting}
         getRowId={(row) => row.id}
-        // onDataSourceChange={setDataSource}
-        onColumnFiltersChange={setColumnFilters}
         onGlobalFilterChange={setGlobalFilter}
         onPaginationChange={setPagination}
         onRowClick={(row) => console.log("row click", row)}
