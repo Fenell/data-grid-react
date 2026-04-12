@@ -72,7 +72,6 @@ const DataGridTable = <T extends GridRow>({
   emptyMessage,
   enableColumnFilters,
   enableResize,
-  isLoading,
   onRowClick,
   onRowDoubleClick,
   rowSelection,
@@ -85,7 +84,6 @@ const DataGridTable = <T extends GridRow>({
   emptyMessage: string;
   enableColumnFilters: boolean;
   enableResize: boolean;
-  isLoading: boolean;
   onRowClick?: (row: T) => void;
   onRowDoubleClick?: (row: T) => void;
   rowSelection: RowSelectionState;
@@ -100,6 +98,9 @@ const DataGridTable = <T extends GridRow>({
   const isAllPageRowsSelected =
     visiblePageRowIds.length > 0 &&
     visiblePageRowIds.every((rowId) => Boolean(rowSelection[String(rowId)]));
+  const isSomePageRowsSelected =
+    !isAllPageRowsSelected &&
+    visiblePageRowIds.some((rowId) => Boolean(rowSelection[String(rowId)]));
 
   return (
     <div
@@ -114,15 +115,6 @@ const DataGridTable = <T extends GridRow>({
       }
     >
       <div className={styles.scrollContent}>
-        {isLoading && (
-          <div className={styles.loadingOverlay}>
-            {/* <div className={styles.loadingCard}>Đang tải...</div> */}
-            <div className={styles.loadingCard}>
-              <Spinner />
-            </div>
-          </div>
-        )}
-
         <table className={styles.table} style={{ width: table.getTotalSize() }}>
           <thead>
             {headers.map((headerGroup) => (
@@ -207,8 +199,17 @@ const DataGridTable = <T extends GridRow>({
                               {hasCheckbox && (
                                 <input
                                   aria-label="Select all rows"
+                                  aria-checked={
+                                    isSomePageRowsSelected ? "mixed" : undefined
+                                  }
                                   className={styles.checkboxInput}
                                   checked={isAllPageRowsSelected}
+                                  ref={(element) => {
+                                    if (element) {
+                                      element.indeterminate =
+                                        isSomePageRowsSelected;
+                                    }
+                                  }}
                                   onChange={(event) => {
                                     const checked = event.currentTarget.checked;
                                     rows.forEach((row) => {
@@ -445,229 +446,242 @@ const DataGridInner = <T extends GridRow>(
 
   return (
     <div className={styles.wrap} style={{ width: props.width ?? "100%" }}>
-      <DataGridTable
-        contentHeight={props.contentHeight}
-        emptyMessage={props.emptyMessage ?? "Không có dữ liệu phù hợp"}
-        enableColumnFilters={props.enableColumnFilters ?? true}
-        enableResize={props.enableResize ?? true}
-        isLoading={props.isLoading ?? false}
-        onRowClick={props.onRowClick}
-        onRowDoubleClick={props.onRowDoubleClick}
-        rowSelection={rowSelection}
-        rows={rows}
-        sorting={sortingState}
-        table={table}
-        toggleRowSelected={toggleRowSelected}
-      />
-
-      {(props.enablePagination ?? true) && canPaginate && (
-        <div className={styles.pagination}>
-          <div className={styles.pageSelectWrap} ref={pageSizeMenuRef}>
-            {pageSizeMenuOpen && (
-              <div className={styles.pageSelectMenu} role="listbox">
-                {(paginationModel.pageSizeOptions ?? [5, 10, 20, 50]).map(
-                  (size) => (
-                  <div
-                    key={size}
-                    className={cx(
-                      styles.pageSelectOption,
-                      paginationModel.pageSize === size &&
-                        styles.pageSelectOptionActive,
-                    )}
-                    role="option"
-                    aria-selected={paginationModel.pageSize === size}
-                    onClick={() => {
-                      setPageSize(size);
-                      setPageSizeMenuOpen(false);
-                    }}
-                  >
-                    {size}
-                  </div>
-                  ),
-                )}
-              </div>
-            )}
-
-            <button
-              className={cx(styles.pageSelect, styles.pageSelectTrigger)}
-              onClick={() => setPageSizeMenuOpen((current) => !current)}
-              type="button"
-              aria-haspopup="listbox"
-              aria-expanded={pageSizeMenuOpen}
-            >
-              <span>{paginationModel.pageSize}</span>
-              <span
-                className={cx(
-                  styles.pageSelectChevron,
-                  pageSizeMenuOpen && styles.pageSelectChevronOpen,
-                )}
-                aria-hidden="true"
-              >
-                <svg
-                  className=" text-gray-800 dark:text-white"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18.425 10.271C19.499 8.967 18.57 7 16.88 7H7.12c-1.69 0-2.618 1.967-1.544 3.271l4.881 5.927a2 2 0 0 0 3.088 0l4.88-5.927Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </span>
-            </button>
+      <div className={styles.gridFrame}>
+        {props.isLoading && (
+          <div className={styles.loadingOverlay}>
+            <div className={styles.loadingCard}>
+              <Spinner />
+            </div>
           </div>
+        )}
 
-          <span className={styles.pageInfo}>
-            {resolvedRowCount === 0
-              ? "0-0 of 0"
-              : `${paginationModel.pageIndex * paginationModel.pageSize + 1}-${Math.min(
-                  (paginationModel.pageIndex + 1) * paginationModel.pageSize,
-                  resolvedRowCount,
-                )} of ${resolvedRowCount}`}
-          </span>
+        <DataGridTable
+          contentHeight={props.contentHeight}
+          emptyMessage={props.emptyMessage ?? "Không có dữ liệu phù hợp"}
+          enableColumnFilters={props.enableColumnFilters ?? true}
+          enableResize={props.enableResize ?? true}
+          onRowClick={props.onRowClick}
+          onRowDoubleClick={props.onRowDoubleClick}
+          rowSelection={rowSelection}
+          rows={rows}
+          sorting={sortingState}
+          table={table}
+          toggleRowSelected={toggleRowSelected}
+        />
 
-          <div className={styles.paginationControls}>
-            <div className={styles.pageButtonGroup}>
+        {(props.enablePagination ?? true) && canPaginate && (
+          <div className={styles.pagination}>
+            <div className={styles.pageSelectWrap} ref={pageSizeMenuRef}>
+              {pageSizeMenuOpen && (
+                <div className={styles.pageSelectMenu} role="listbox">
+                  {(paginationModel.pageSizeOptions ?? [5, 10, 20, 50]).map(
+                    (size) => (
+                      <div
+                        key={size}
+                        className={cx(
+                          styles.pageSelectOption,
+                          paginationModel.pageSize === size &&
+                            styles.pageSelectOptionActive,
+                        )}
+                        role="option"
+                        aria-selected={paginationModel.pageSize === size}
+                        onClick={() => {
+                          setPageSize(size);
+                          setPageSizeMenuOpen(false);
+                        }}
+                      >
+                        {size}
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
+
               <button
-                className={styles.pageButton}
-                disabled={paginationModel.pageIndex <= 0}
-                onClick={() => setPageIndex(0)}
+                className={cx(styles.pageSelect, styles.pageSelectTrigger)}
+                onClick={() => setPageSizeMenuOpen((current) => !current)}
                 type="button"
+                aria-haspopup="listbox"
+                aria-expanded={pageSizeMenuOpen}
               >
-                <svg
-                  className="text-gray-800 dark:text-white"
+                <span>{paginationModel.pageSize}</span>
+                <span
+                  className={cx(
+                    styles.pageSelectChevron,
+                    pageSizeMenuOpen && styles.pageSelectChevronOpen,
+                  )}
                   aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="none"
-                  viewBox="0 0 24 24"
                 >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="m17 16-4-4 4-4m-6 8-4-4 4-4"
-                  />
-                </svg>
+                  <svg
+                    className=" text-gray-800 dark:text-white"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18.425 10.271C19.499 8.967 18.57 7 16.88 7H7.12c-1.69 0-2.618 1.967-1.544 3.271l4.881 5.927a2 2 0 0 0 3.088 0l4.88-5.927Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
               </button>
-              <button
-                className={styles.pageButton}
-                disabled={paginationModel.pageIndex <= 0}
-                onClick={() =>
-                  setPageIndex(Math.max(paginationModel.pageIndex - 1, 0))
-                }
-                type="button"
-              >
-                <svg
-                  className="w-6 h-6 text-gray-800 dark:text-white"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="none"
-                  viewBox="0 0 24 24"
+            </div>
+
+            <span className={styles.pageInfo}>
+              {resolvedRowCount === 0
+                ? "0-0 of 0"
+                : `${paginationModel.pageIndex * paginationModel.pageSize + 1}-${Math.min(
+                    (paginationModel.pageIndex + 1) * paginationModel.pageSize,
+                    resolvedRowCount,
+                  )} of ${resolvedRowCount}`}
+            </span>
+
+            <div className={styles.paginationControls}>
+              <div className={styles.pageButtonGroup}>
+                <button
+                  className={styles.pageButton}
+                  disabled={paginationModel.pageIndex <= 0}
+                  onClick={() => setPageIndex(0)}
+                  type="button"
                 >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="m14 8-4 4 4 4"
-                  />
-                </svg>
-              </button>
-              <span className={styles.pageIndicator}>
-                Trang {paginationModel.pageIndex + 1} /{" "}
-                {Math.max(paginationModel.pageCount ?? table.getPageCount(), 1)}
-              </span>
-              <button
-                className={styles.pageButton}
-                disabled={
-                  paginationModel.pageIndex >=
-                  Math.max(
-                    (paginationModel.pageCount ?? table.getPageCount()) - 1,
-                    0,
-                  )
-                }
-                onClick={() =>
-                  setPageIndex(
-                    Math.min(
-                      paginationModel.pageIndex + 1,
+                  <svg
+                    className="text-gray-800 dark:text-white"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="m17 16-4-4 4-4m-6 8-4-4 4-4"
+                    />
+                  </svg>
+                </button>
+                <button
+                  className={styles.pageButton}
+                  disabled={paginationModel.pageIndex <= 0}
+                  onClick={() =>
+                    setPageIndex(Math.max(paginationModel.pageIndex - 1, 0))
+                  }
+                  type="button"
+                >
+                  <svg
+                    className="w-6 h-6 text-gray-800 dark:text-white"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="m14 8-4 4 4 4"
+                    />
+                  </svg>
+                </button>
+                <span className={styles.pageIndicator}>
+                  Trang {paginationModel.pageIndex + 1} /{" "}
+                  {Math.max(
+                    paginationModel.pageCount ?? table.getPageCount(),
+                    1,
+                  )}
+                </span>
+                <button
+                  className={styles.pageButton}
+                  disabled={
+                    paginationModel.pageIndex >=
+                    Math.max(
+                      (paginationModel.pageCount ?? table.getPageCount()) - 1,
+                      0,
+                    )
+                  }
+                  onClick={() =>
+                    setPageIndex(
+                      Math.min(
+                        paginationModel.pageIndex + 1,
+                        Math.max(
+                          (paginationModel.pageCount ?? table.getPageCount()) -
+                            1,
+                          0,
+                        ),
+                      ),
+                    )
+                  }
+                  type="button"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-600 dark:text-white"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="m10 16 4-4-4-4"
+                    />
+                  </svg>
+                </button>
+                <button
+                  className={styles.pageButton}
+                  disabled={
+                    paginationModel.pageIndex >=
+                    Math.max(
+                      (paginationModel.pageCount ?? table.getPageCount()) - 1,
+                      0,
+                    )
+                  }
+                  onClick={() =>
+                    setPageIndex(
                       Math.max(
                         (paginationModel.pageCount ?? table.getPageCount()) - 1,
                         0,
                       ),
-                    ),
-                  )
-                }
-                type="button"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-600 dark:text-white"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="none"
-                  viewBox="0 0 24 24"
+                    )
+                  }
+                  type="button"
                 >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="m10 16 4-4-4-4"
-                  />
-                </svg>
-              </button>
-              <button
-                className={styles.pageButton}
-                disabled={
-                  paginationModel.pageIndex >=
-                  Math.max(
-                    (paginationModel.pageCount ?? table.getPageCount()) - 1,
-                    0,
-                  )
-                }
-                onClick={() =>
-                  setPageIndex(
-                    Math.max(
-                      (paginationModel.pageCount ?? table.getPageCount()) - 1,
-                      0,
-                    ),
-                  )
-                }
-                type="button"
-              >
-                <svg
-                  className="text-gray-800 dark:text-white"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="m7 16 4-4-4-4m6 8 4-4-4-4"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="text-gray-800 dark:text-white"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="m7 16 4-4-4-4m6 8 4-4-4-4"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

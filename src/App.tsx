@@ -33,7 +33,7 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
     id: "name",
     label: "Họ tên",
     sortable: true,
-    width: 240,
+    width: 230,
   },
   {
     id: "dept",
@@ -218,7 +218,7 @@ function App() {
       const end = start + paginationModel.pageSize;
       setPageRows(processedRows.slice(start, end));
       setIsLoading(false);
-    }, 250);
+    }, 500);
 
     return () => window.clearTimeout(timer);
   }, [paginationModel, processedRows]);
@@ -324,7 +324,7 @@ function App() {
         ref={gridRef}
         columns={employeeColumns}
         data={processedRows}
-        contentHeight={420}
+        contentHeight={600}
         enableColumnFilters={false}
         globalFilter={globalFilter}
         isLoading={isLoading}
