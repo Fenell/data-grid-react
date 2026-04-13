@@ -2,6 +2,7 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -39,6 +40,10 @@ function getAlignClassName(align: ColumnAlign | undefined) {
 
 const getPinnedColumnStyles = <T extends GridRow>(
   column: Column<T>,
+  offsets?: {
+    left: Record<string, number>;
+    right: Record<string, number>;
+  },
   isHeader = false,
 ): CSSProperties => {
   const pinned = column.getIsPinned();
@@ -46,8 +51,14 @@ const getPinnedColumnStyles = <T extends GridRow>(
     return {};
   }
   return {
-    left: pinned === "left" ? `${column.getStart("left")}px` : undefined,
-    right: pinned === "right" ? `${column.getAfter("right")}px` : undefined,
+    left:
+      pinned === "left"
+        ? `${offsets?.left[column.id] ?? column.getStart("left")}px`
+        : undefined,
+    right:
+      pinned === "right"
+        ? `${offsets?.right[column.id] ?? column.getAfter("right")}px`
+        : undefined,
     position: "sticky",
     zIndex: isHeader ? 4 : 1,
   };
@@ -94,6 +105,8 @@ const DataGridTable = <T extends GridRow>({
 }) => {
   const headers = table.getHeaderGroups();
   const leafHeaders = table.getLeafHeaders();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [viewportWidth, setViewportWidth] = useState(0);
   const visiblePageRowIds = rows.map((row) => row.id);
   const isAllPageRowsSelected =
     visiblePageRowIds.length > 0 &&
@@ -102,8 +115,80 @@ const DataGridTable = <T extends GridRow>({
     !isAllPageRowsSelected &&
     visiblePageRowIds.some((rowId) => Boolean(rowSelection[String(rowId)]));
 
+  useLayoutEffect(() => {
+    const element = scrollRef.current;
+    if (!element) {
+      return;
+    }
+
+    const updateViewportWidth = () => {
+      setViewportWidth(element.clientWidth);
+    };
+
+    updateViewportWidth();
+
+    const resizeObserver = new ResizeObserver(updateViewportWidth);
+    resizeObserver.observe(element);
+
+    return () => resizeObserver.disconnect();
+  }, [contentHeight, enableColumnFilters, leafHeaders.length, table]);
+
+  const resolvedColumnWidths = (() => {
+    const baseColumns = leafHeaders.map((header) => ({
+      id: header.column.id,
+      width: header.getSize(),
+    }));
+    const totalBaseWidth = baseColumns.reduce(
+      (sum, column) => sum + column.width,
+      0,
+    );
+    const widthMap = Object.fromEntries(
+      baseColumns.map((column) => [column.id, column.width]),
+    ) as Record<string, number>;
+
+    if (viewportWidth > totalBaseWidth && baseColumns.length > 0) {
+      const lastColumn = baseColumns[baseColumns.length - 1];
+      widthMap[lastColumn.id] += viewportWidth - totalBaseWidth;
+      return {
+        tableWidth: viewportWidth,
+        widthMap,
+      };
+    }
+
+    return {
+      tableWidth: totalBaseWidth,
+      widthMap,
+    };
+  })();
+
+  const pinnedOffsets = (() => {
+    const left: Record<string, number> = {};
+    const right: Record<string, number> = {};
+
+    let leftOffset = 0;
+    leafHeaders.forEach((header) => {
+      if (header.column.getIsPinned() !== "left") {
+        return;
+      }
+      left[header.column.id] = leftOffset;
+      leftOffset += resolvedColumnWidths.widthMap[header.column.id];
+    });
+
+    let rightOffset = 0;
+    [...leafHeaders].reverse().forEach((header) => {
+      if (header.column.getIsPinned() !== "right") {
+        return;
+      }
+      right[header.column.id] = rightOffset;
+      rightOffset += resolvedColumnWidths.widthMap[header.column.id];
+    });
+
+    return { left, right };
+  })();
+
   return (
     <div
+      ref={scrollRef}
       className={styles.scroll}
       style={
         contentHeight
@@ -115,7 +200,21 @@ const DataGridTable = <T extends GridRow>({
       }
     >
       <div className={styles.scrollContent}>
-        <table className={styles.table} style={{ width: table.getTotalSize() }}>
+        <table
+          className={styles.table}
+          style={{ width: resolvedColumnWidths.tableWidth }}
+        >
+          <colgroup>
+            {leafHeaders.map((header) => (
+              <col
+                key={`${header.id}-col`}
+                style={{
+                  width: resolvedColumnWidths.widthMap[header.column.id],
+                  minWidth: resolvedColumnWidths.widthMap[header.column.id],
+                }}
+              />
+            ))}
+          </colgroup>
           <thead>
             {headers.map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -125,6 +224,7 @@ const DataGridTable = <T extends GridRow>({
                   );
                   const pinnedStyles = getPinnedColumnStyles(
                     header.column,
+                    pinnedOffsets,
                     true,
                   );
                   const hasCheckbox = header.column.columnDef.meta?.hasCheckbox;
@@ -177,8 +277,9 @@ const DataGridTable = <T extends GridRow>({
                       )}
                       style={{
                         ...pinnedStyles,
-                        width: header.getSize(),
-                        minWidth: header.getSize(),
+                        width: resolvedColumnWidths.widthMap[header.column.id],
+                        minWidth:
+                          resolvedColumnWidths.widthMap[header.column.id],
                       }}
                     >
                       {header.isPlaceholder ? null : (
@@ -277,6 +378,7 @@ const DataGridTable = <T extends GridRow>({
                   );
                   const pinnedStyles = getPinnedColumnStyles(
                     header.column,
+                    pinnedOffsets,
                     true,
                   );
                   const filterType = header.column.columnDef.meta?.filterType;
@@ -299,8 +401,9 @@ const DataGridTable = <T extends GridRow>({
                       )}
                       style={{
                         ...pinnedStyles,
-                        width: header.getSize(),
-                        minWidth: header.getSize(),
+                        width: resolvedColumnWidths.widthMap[header.column.id],
+                        minWidth:
+                          resolvedColumnWidths.widthMap[header.column.id],
                       }}
                     >
                       {header.column.getCanFilter() ? (
@@ -361,7 +464,10 @@ const DataGridTable = <T extends GridRow>({
                     const alignClassName = getAlignClassName(
                       cell.column.columnDef.meta?.align,
                     );
-                    const pinnedStyles = getPinnedColumnStyles(cell.column);
+                    const pinnedStyles = getPinnedColumnStyles(
+                      cell.column,
+                      pinnedOffsets,
+                    );
 
                     return (
                       <td
@@ -377,8 +483,9 @@ const DataGridTable = <T extends GridRow>({
                         )}
                         style={{
                           ...pinnedStyles,
-                          width: cell.column.getSize(),
-                          minWidth: cell.column.getSize(),
+                          width: resolvedColumnWidths.widthMap[cell.column.id],
+                          minWidth:
+                            resolvedColumnWidths.widthMap[cell.column.id],
                         }}
                       >
                         {flexRender(

@@ -104,7 +104,7 @@
 .table {
   position: relative;
   width: max-content;
-  min-width: 100%;
+  table-layout: fixed;
 
   border-collapse: separate;
   border-spacing: 0;
@@ -429,7 +429,7 @@ tbody tr:hover .td.pinnedRight {
   justify-content: flex-end;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 10px 12px;
+  padding: 4px 12px;
   border-top: var(--grid-border-row);
   background: var(--grid-bg-base);
 }
