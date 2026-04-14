@@ -715,13 +715,34 @@ const DataGridInner = <T extends GridRow>(
               </button>
             </div>
 
-            <span className={styles.pageInfo}>
-              {resolvedRowCount === 0
-                ? "0-0 of 0"
-                : `${paginationModel.pageIndex * paginationModel.pageSize + 1}-${Math.min(
-                    (paginationModel.pageIndex + 1) * paginationModel.pageSize,
-                    resolvedRowCount,
-                  )} of ${resolvedRowCount}`}
+            <span>
+              {
+                resolvedRowCount === 0 ? (
+                  "0-0 of 0"
+                ) : (
+                  <>
+                    <span className={styles.pagingNumber}>
+                      {paginationModel.pageIndex * paginationModel.pageSize + 1}
+                    </span>
+                    &nbsp;-&nbsp;
+                    <span className={styles.pagingNumber}>
+                      {Math.min(
+                        (paginationModel.pageIndex + 1) *
+                          paginationModel.pageSize,
+                        resolvedRowCount,
+                      )}
+                    </span>
+                    &nbsp;of&nbsp;
+                    <span className={styles.pagingNumber}>
+                      {resolvedRowCount}
+                    </span>
+                  </>
+                )
+                // `${paginationModel.pageIndex * paginationModel.pageSize + 1}-${Math.min(
+                //     (paginationModel.pageIndex + 1) * paginationModel.pageSize,
+                //     resolvedRowCount,
+                //   )} of ${resolvedRowCount}`}
+              }
             </span>
 
             <div className={styles.paginationControls}>

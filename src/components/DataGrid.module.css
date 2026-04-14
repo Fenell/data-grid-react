@@ -56,16 +56,17 @@
   font-size: var(--grid-font-size);
 }
 
-.pageInfo,
+.pagingNumber,
 .pageIndicator,
 .sortIcon {
   font-size: var(--grid-font-size-sm);
-  color: var(--grid-text-secondary);
+  /* color: #636363; */
 }
 
-.pageInfo {
-  /* margin-left: auto; */
-}
+/* .pagingNumber {
+  font-size: var(--grid-font-size-sm);
+  color: var(--grid-text-secondary);
+} */
 
 .pageIndicator {
   padding: 0 4px;
@@ -380,7 +381,7 @@ tbody tr:hover .td.pinnedRight {
   gap: 8px;
 }
 
-.avatar {
+/* .avatar {
   display: inline-flex;
   width: 28px;
   height: 28px;
@@ -392,9 +393,9 @@ tbody tr:hover .td.pinnedRight {
   color: var(--avatar-fg);
   font-size: 11px;
   font-weight: 500;
-}
+} */
 
-.vipBadge {
+/* .vipBadge {
   padding: 1px 6px;
   border-radius: 10px;
   background: var(--grid-vip-bg);
@@ -402,9 +403,9 @@ tbody tr:hover .td.pinnedRight {
   font-size: 10px;
   font-weight: 500;
   line-height: 1.6;
-}
+} */
 
-.numericCell {
+/* .numericCell {
   font-variant-numeric: tabular-nums;
 }
 
@@ -445,13 +446,13 @@ tbody tr:hover .td.pinnedRight {
   color: var(--status-color);
   font-size: 11px;
   font-weight: 500;
-}
+} */
 
 .pagination {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 20px;
   flex-wrap: wrap;
   padding: 4px 12px;
   border-top: var(--grid-border-row);
@@ -468,7 +469,7 @@ tbody tr:hover .td.pinnedRight {
 .pageButtonGroup {
   display: flex;
   align-items: center;
-  gap: 4px;
+  /* gap: 4px; */
 }
 
 .pageButton {
@@ -476,7 +477,7 @@ tbody tr:hover .td.pinnedRight {
   align-items: center;
   min-width: 30px;
   height: 30px;
-  /* padding: 0 8px; */
+  padding: 0;
   cursor: pointer;
 }
 
