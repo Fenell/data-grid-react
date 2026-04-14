@@ -120,6 +120,11 @@ export type DataGridRef<T extends GridRow> = {
   api: DataGridApi<T>;
 };
 
+export type DataGridReadyEvent<T extends GridRow> = {
+  api: DataGridApi<T>;
+  ref: DataGridRef<T>;
+};
+
 export type DataGridProps<T extends GridRow> = DataGridFeatureFlags &
   DataGridServerPaginationProps & {
     columns: ColumnDef<T>[];
@@ -129,6 +134,7 @@ export type DataGridProps<T extends GridRow> = DataGridFeatureFlags &
     emptyMessage?: string;
     getRowId?: (row: T) => string | number;
     onDataSourceChange?: (rows: T[]) => void;
+    onGridReady?: (event: DataGridReadyEvent<T>) => void;
     onRowClick?: (row: T) => void;
     onRowDoubleClick?: (row: T) => void;
   };

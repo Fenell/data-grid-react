@@ -5,6 +5,7 @@ export type {
   DataGridFeatureFlags,
   DataGridPaginationModel,
   DataGridProps,
+  DataGridReadyEvent,
   DataGridRef,
   DataGridServerPaginationProps,
   DataGridTransaction,

@@ -740,6 +740,7 @@ const DataGridInner = <T extends GridRow>(
 ) => {
   const [pageSizeMenuOpen, setPageSizeMenuOpen] = useState(false);
   const pageSizeMenuRef = useRef<HTMLDivElement>(null);
+  const hasTriggeredGridReadyRef = useRef(false);
   const {
     api,
     canPaginate,
@@ -761,6 +762,18 @@ const DataGridInner = <T extends GridRow>(
     }),
     [api],
   );
+
+  useEffect(() => {
+    if (hasTriggeredGridReadyRef.current) {
+      return;
+    }
+
+    hasTriggeredGridReadyRef.current = true;
+    props.onGridReady?.({
+      api,
+      ref: { api },
+    });
+  }, [api, props]);
 
   useEffect(() => {
     if (!pageSizeMenuOpen) {

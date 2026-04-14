@@ -5,6 +5,7 @@ import type { SortingState } from "@tanstack/react-table";
 import DataGrid, {
   type ColumnDef,
   type DataGridPaginationModel,
+  type DataGridReadyEvent,
   type DataGridRef,
 } from "./components/";
 import {
@@ -282,6 +283,11 @@ function App() {
     }));
   }, [globalFilter, sorting]);
 
+  const handleOnGridReady = ({ api, ref }: DataGridReadyEvent<EmployeeRow>) => {
+    // api.setGlobalFilter("thuật");
+    api.setColumnsVisible(["salary"], false);
+  };
+
   return (
     <>
       <button
@@ -388,6 +394,7 @@ function App() {
         onPaginationChange={(e) => {
           setPagination(e);
         }}
+        // onGridReady={handleOnGridReady}
         onRowClick={(row) => console.log("row click", row)}
         onRowDoubleClick={(row) => console.log("row double click", row)}
         onSortingChange={setSorting}
