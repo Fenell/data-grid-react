@@ -82,7 +82,43 @@ const SortIcon = ({ direction }: { direction: false | "asc" | "desc" }) => {
       className={cx(styles.sortIcon, styles.sortIconActive)}
       aria-hidden="true"
     >
-      {direction === "asc" ? "↑" : "↓"}
+      {direction === "asc" ? (
+        <svg
+          className="w-6 h-6 text-gray-800 dark:text-white"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.7"
+            d="M12 6v13m0-13 4 4m-4-4-4 4"
+          />
+        </svg>
+      ) : (
+        <svg
+          className="w-6 h-6 text-gray-800 dark:text-white"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.7"
+            d="M12 19V5m0 14-4-4m4 4 4-4"
+          />
+        </svg>
+      )}
     </span>
   );
 };
@@ -676,7 +712,8 @@ const DataGridTable = <T extends GridRow>({
                           className={cx(
                             styles.td,
                             alignClassName,
-                            (wrapText || cell.column.columnDef.meta?.wrapText) &&
+                            (wrapText ||
+                              cell.column.columnDef.meta?.wrapText) &&
                               styles.tdWrapText,
                             cell.column.getIsPinned() && styles.tdPinned,
                             cell.column.getIsPinned() === "left" &&

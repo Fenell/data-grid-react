@@ -272,7 +272,7 @@
   align-items: center;
   justify-content: center;
   margin-left: 2px;
-  color: var(--grid-accent);
+  /* color: var(--grid-accent); */
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
@@ -317,6 +317,7 @@
   padding: 8px 12px;
   font-size: var(--grid-font-size);
   background: var(--grid-bg-base);
+  cursor: default;
   transition:
     background-color var(--grid-transition-base),
     box-shadow var(--grid-transition-base);
@@ -325,6 +326,7 @@
 .cellContent {
   width: 100%;
   min-width: 0;
+  cursor: inherit;
 }
 
 .cellContentWrap {
