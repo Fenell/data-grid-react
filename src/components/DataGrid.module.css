@@ -95,6 +95,8 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
+  background-color: var(--grid-bg-header);
+
   border-bottom: var(--grid-border-row);
 }
 
@@ -172,7 +174,8 @@
   position: relative;
   padding: 8px 12px;
   /* padding-right: 24px; */
-  background: var(--grid-bg-header);
+  background-color: var(--grid-bg-header);
+
   color: var(--grid-text-secondary);
   font-size: var(--grid-font-size-sm);
   font-weight: 550;

@@ -109,6 +109,7 @@ const DataGridTable = <T extends GridRow>({
   const headerScrollRef = useRef<HTMLDivElement>(null);
   const syncingScrollRef = useRef(false);
   const [viewportWidth, setViewportWidth] = useState(0);
+  const [bodyScrollbarWidth, setBodyScrollbarWidth] = useState(0);
   const visiblePageRowIds = rows.map((row) => row.id);
   const isAllPageRowsSelected =
     visiblePageRowIds.length > 0 &&
@@ -125,6 +126,7 @@ const DataGridTable = <T extends GridRow>({
 
     const updateViewportWidth = () => {
       setViewportWidth(element.clientWidth);
+      setBodyScrollbarWidth(element.offsetWidth - element.clientWidth);
     };
 
     updateViewportWidth();
@@ -236,7 +238,15 @@ const DataGridTable = <T extends GridRow>({
       style={contentHeight ? { height: contentHeight } : undefined}
     >
       <div className={styles.scrollContent}>
-        <div ref={headerScrollRef} className={styles.headerScroll}>
+        <div
+          ref={headerScrollRef}
+          className={styles.headerScroll}
+          style={
+            bodyScrollbarWidth > 0
+              ? { paddingRight: bodyScrollbarWidth }
+              : undefined
+          }
+        >
           <table
             className={cx(styles.table, styles.headerTable)}
             style={{ width: resolvedColumnWidths.tableWidth }}

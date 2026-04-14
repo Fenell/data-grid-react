@@ -77,11 +77,11 @@ const fetchEmployees = (
 };
 
 const employeeColumns: ColumnDef<EmployeeRow>[] = [
-  // {
-  //   cell: "checkBox",
-  //   pinned: "left",
-  //   width: 52,
-  // },
+  {
+    cell: "checkBox",
+    pinned: "left",
+    width: 52,
+  },
   {
     id: "id",
     label: "ID",
