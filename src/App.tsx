@@ -376,7 +376,7 @@ function App() {
         ref={gridRef}
         columns={employeeColumns}
         data={pageRows}
-        contentHeight={600}
+        contentHeight={500}
         enableColumnFilters={false}
         globalFilter={globalFilter}
         isLoading={isLoading}

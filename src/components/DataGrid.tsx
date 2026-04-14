@@ -234,10 +234,10 @@ const DataGridTable = <T extends GridRow>({
 
   return (
     <div
-      className={styles.scroll}
+      className={styles.gridContainer}
       style={contentHeight ? { height: contentHeight } : undefined}
     >
-      <div className={styles.scrollContent}>
+      <div className={styles.gridContainerWarp}>
         <div
           ref={headerScrollRef}
           className={styles.headerScroll}
@@ -274,7 +274,8 @@ const DataGridTable = <T extends GridRow>({
                       pinnedOffsets,
                       true,
                     );
-                    const hasCheckbox = header.column.columnDef.meta?.hasCheckbox;
+                    const hasCheckbox =
+                      header.column.columnDef.meta?.hasCheckbox;
                     const canSort = header.column.getCanSort();
                     const activeSort = sorting.find(
                       (item) => String(item.id) === String(header.column.id),
@@ -284,7 +285,8 @@ const DataGridTable = <T extends GridRow>({
                       ? activeSort.desc
                         ? "desc"
                         : "asc"
-                      : sortedFromColumn === "asc" || sortedFromColumn === "desc"
+                      : sortedFromColumn === "asc" ||
+                          sortedFromColumn === "desc"
                         ? sortedFromColumn
                         : false;
 
@@ -324,7 +326,8 @@ const DataGridTable = <T extends GridRow>({
                         )}
                         style={{
                           ...pinnedStyles,
-                          width: resolvedColumnWidths.widthMap[header.column.id],
+                          width:
+                            resolvedColumnWidths.widthMap[header.column.id],
                           minWidth:
                             resolvedColumnWidths.widthMap[header.column.id],
                         }}
@@ -348,7 +351,9 @@ const DataGridTable = <T extends GridRow>({
                                   <input
                                     aria-label="Select all rows"
                                     aria-checked={
-                                      isSomePageRowsSelected ? "mixed" : undefined
+                                      isSomePageRowsSelected
+                                        ? "mixed"
+                                        : undefined
                                     }
                                     className={styles.checkboxInput}
                                     checked={isAllPageRowsSelected}
@@ -359,9 +364,13 @@ const DataGridTable = <T extends GridRow>({
                                       }
                                     }}
                                     onChange={(event) => {
-                                      const checked = event.currentTarget.checked;
+                                      const checked =
+                                        event.currentTarget.checked;
                                       rows.forEach((row) => {
-                                        toggleRowSelected(row.original, checked);
+                                        toggleRowSelected(
+                                          row.original,
+                                          checked,
+                                        );
                                       });
                                     }}
                                     onDoubleClick={(event) =>
@@ -448,7 +457,8 @@ const DataGridTable = <T extends GridRow>({
                         )}
                         style={{
                           ...pinnedStyles,
-                          width: resolvedColumnWidths.widthMap[header.column.id],
+                          width:
+                            resolvedColumnWidths.widthMap[header.column.id],
                           minWidth:
                             resolvedColumnWidths.widthMap[header.column.id],
                         }}
@@ -548,7 +558,8 @@ const DataGridTable = <T extends GridRow>({
                           )}
                           style={{
                             ...pinnedStyles,
-                            width: resolvedColumnWidths.widthMap[cell.column.id],
+                            width:
+                              resolvedColumnWidths.widthMap[cell.column.id],
                             minWidth:
                               resolvedColumnWidths.widthMap[cell.column.id],
                           }}

@@ -71,7 +71,7 @@
   padding: 0 4px;
 }
 
-.scroll {
+.gridContainer {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -79,7 +79,7 @@
   background: var(--grid-bg-base);
 }
 
-.scrollContent {
+.gridContainerWarp {
   position: relative;
   display: flex;
   flex-direction: column;
