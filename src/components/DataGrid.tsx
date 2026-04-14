@@ -550,6 +550,8 @@ const DataGridTable = <T extends GridRow>({
                           className={cx(
                             styles.td,
                             alignClassName,
+                            cell.column.columnDef.meta?.wrapText &&
+                              styles.tdWrapText,
                             cell.column.getIsPinned() && styles.tdPinned,
                             cell.column.getIsPinned() === "left" &&
                               styles.pinnedLeft,

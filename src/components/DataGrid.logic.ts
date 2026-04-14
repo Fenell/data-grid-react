@@ -39,6 +39,7 @@ const resolveColumnId = <T extends GridRow>(
 
 const createTanStackColumns = <T extends GridRow>(
   columns: ColumnDef<T>[],
+  wrapText: boolean,
   options: {
     isRowSelected: (row: T) => boolean;
     toggleRowSelected: (row: T, checked: boolean) => void;
@@ -83,6 +84,7 @@ const createTanStackColumns = <T extends GridRow>(
         meta: {
           align: column.align ?? "center",
           hasCheckbox: true,
+          wrapText: wrapText || (column.wrapText ?? false),
         },
       } satisfies TanStackColumnDef<T>;
     }
@@ -127,6 +129,7 @@ const createTanStackColumns = <T extends GridRow>(
         filterOptions: column.options,
         filterType: column.filterType,
         hasCheckbox: false,
+        wrapText: wrapText || (column.wrapText ?? false),
       },
     } satisfies TanStackColumnDef<T>;
   });
@@ -168,6 +171,7 @@ export const useDataGridController = <T extends GridRow>({
   enableResize = true,
   enableSort = true,
   enablePagination = true,
+  wrapText = false,
   serverSide = false,
   pagination,
   sorting,
@@ -227,11 +231,11 @@ export const useDataGridController = <T extends GridRow>({
 
   const tanStackColumns = useMemo(
     () =>
-      createTanStackColumns(columns, {
+      createTanStackColumns(columns, wrapText, {
         isRowSelected,
         toggleRowSelected,
       }),
-    [columns, rowSelection],
+    [columns, rowSelection, wrapText],
   );
   const paginationModel = pagination ?? internalPagination;
   const paginationState: PaginationState = {

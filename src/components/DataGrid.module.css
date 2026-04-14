@@ -322,6 +322,11 @@
     box-shadow var(--grid-transition-base);
 }
 
+.tdWrapText {
+  white-space: normal;
+  word-break: break-word;
+}
+
 .tdPinned {
   position: sticky;
   left: 0;

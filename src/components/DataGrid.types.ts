@@ -22,6 +22,7 @@ declare module "@tanstack/react-table" {
     filterType?: ColumnFilterType;
     filterOptions?: readonly string[];
     hasCheckbox?: boolean;
+    wrapText?: boolean;
   }
 }
 
@@ -29,6 +30,7 @@ type SharedColumnOptions = {
   width?: number;
   minWidth?: number;
   maxWidth?: number;
+  wrapText?: boolean;
   align?: ColumnAlign;
   pinned?: "left" | "right";
   hide?: boolean;
@@ -63,6 +65,7 @@ export type DataGridFeatureFlags = {
   enableResize?: boolean;
   enableSort?: boolean;
   enablePagination?: boolean;
+  wrapText?: boolean;
 };
 
 export type DataGridPaginationModel = PaginationState & {
