@@ -6,7 +6,16 @@ import {
   useRef,
   useState,
 } from "react";
-import type { CSSProperties, MouseEvent, ReactElement, Ref } from "react";
+import type {
+  CSSProperties,
+  Dispatch,
+  MouseEvent,
+  ReactElement,
+  ReactNode,
+  Ref,
+  SetStateAction,
+} from "react";
+import { createPortal } from "react-dom";
 import { flexRender } from "@tanstack/react-table";
 import type {
   Column,
@@ -78,6 +87,94 @@ const SortIcon = ({ direction }: { direction: false | "asc" | "desc" }) => {
   );
 };
 
+type TooltipState = {
+  left: number;
+  text: string;
+  top: number;
+  visible: boolean;
+} | null;
+
+const CellContent = ({
+  children,
+  showTooltip,
+  setTooltipState,
+  wrapText,
+}: {
+  children: ReactNode;
+  showTooltip: boolean;
+  setTooltipState: Dispatch<SetStateAction<TooltipState>>;
+  wrapText: boolean;
+}) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [tooltipText, setTooltipText] = useState("");
+
+  useLayoutEffect(() => {
+    const element = contentRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    const updateOverflowState = () => {
+      const text = element.textContent?.trim() ?? "";
+      const hasOverflow = wrapText
+        ? element.scrollHeight > element.clientHeight
+        : element.scrollWidth > element.clientWidth;
+
+      setTooltipText(showTooltip && hasOverflow ? text : "");
+    };
+
+    updateOverflowState();
+
+    const resizeObserver = new ResizeObserver(updateOverflowState);
+    resizeObserver.observe(element);
+
+    return () => resizeObserver.disconnect();
+  }, [children, showTooltip, wrapText]);
+
+  const handleMouseEnter = () => {
+    const element = contentRef.current;
+
+    if (!element || !tooltipText) {
+      return;
+    }
+
+    const rect = element.getBoundingClientRect();
+    setTooltipState({
+      left: rect.left + rect.width / 2,
+      text: tooltipText,
+      top: rect.top - 8,
+      visible: true,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTooltipState((current) =>
+      current
+        ? {
+            ...current,
+            visible: false,
+          }
+        : null,
+    );
+  };
+
+  return (
+    <div
+      ref={contentRef}
+      className={cx(
+        styles.cellContent,
+        showTooltip && styles.cellContentEllipsis,
+        wrapText && !showTooltip && styles.cellContentWrap,
+      )}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </div>
+  );
+};
+
 const DataGridTable = <T extends GridRow>({
   contentHeight,
   emptyMessage,
@@ -87,9 +184,11 @@ const DataGridTable = <T extends GridRow>({
   onRowDoubleClick,
   rowSelection,
   rows,
+  showTooltip,
   sorting,
   table,
   toggleRowSelected,
+  wrapText,
 }: {
   contentHeight?: CSSProperties["height"];
   emptyMessage: string;
@@ -99,9 +198,11 @@ const DataGridTable = <T extends GridRow>({
   onRowDoubleClick?: (row: T) => void;
   rowSelection: RowSelectionState;
   rows: ReturnType<Table<T>["getRowModel"]>["rows"];
+  showTooltip: boolean;
   sorting: SortingState;
   table: Table<T>;
   toggleRowSelected: (row: T, checked: boolean) => void;
+  wrapText: boolean;
 }) => {
   const headers = table.getHeaderGroups();
   const leafHeaders = table.getLeafHeaders();
@@ -110,6 +211,7 @@ const DataGridTable = <T extends GridRow>({
   const syncingScrollRef = useRef(false);
   const [viewportWidth, setViewportWidth] = useState(0);
   const [bodyScrollbarWidth, setBodyScrollbarWidth] = useState(0);
+  const [tooltipState, setTooltipState] = useState<TooltipState>(null);
   const visiblePageRowIds = rows.map((row) => row.id);
   const isAllPageRowsSelected =
     visiblePageRowIds.length > 0 &&
@@ -178,6 +280,30 @@ const DataGridTable = <T extends GridRow>({
       headerElement.removeEventListener("scroll", handleHeaderScroll);
     };
   }, []);
+
+  useEffect(() => {
+    if (!tooltipState) {
+      return;
+    }
+
+    if (!tooltipState.visible) {
+      const timeoutId = window.setTimeout(() => {
+        setTooltipState(null);
+      }, 160);
+
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    const clearTooltip = () => setTooltipState(null);
+
+    window.addEventListener("scroll", clearTooltip, true);
+    window.addEventListener("resize", clearTooltip);
+
+    return () => {
+      window.removeEventListener("scroll", clearTooltip, true);
+      window.removeEventListener("resize", clearTooltip);
+    };
+  }, [tooltipState]);
 
   const resolvedColumnWidths = (() => {
     const baseColumns = leafHeaders.map((header) => ({
@@ -550,7 +676,7 @@ const DataGridTable = <T extends GridRow>({
                           className={cx(
                             styles.td,
                             alignClassName,
-                            cell.column.columnDef.meta?.wrapText &&
+                            (wrapText || cell.column.columnDef.meta?.wrapText) &&
                               styles.tdWrapText,
                             cell.column.getIsPinned() && styles.tdPinned,
                             cell.column.getIsPinned() === "left" &&
@@ -566,10 +692,19 @@ const DataGridTable = <T extends GridRow>({
                               resolvedColumnWidths.widthMap[cell.column.id],
                           }}
                         >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
+                          <CellContent
+                            showTooltip={showTooltip}
+                            setTooltipState={setTooltipState}
+                            wrapText={
+                              wrapText ||
+                              Boolean(cell.column.columnDef.meta?.wrapText)
+                            }
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </CellContent>
                         </td>
                       );
                     })}
@@ -580,6 +715,21 @@ const DataGridTable = <T extends GridRow>({
           </table>
         </div>
       </div>
+      {showTooltip &&
+        tooltipState &&
+        createPortal(
+          <div
+            className={styles.tooltip}
+            data-visible={tooltipState.visible}
+            style={{
+              left: tooltipState.left,
+              top: tooltipState.top,
+            }}
+          >
+            {tooltipState.text}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };
@@ -650,9 +800,11 @@ const DataGridInner = <T extends GridRow>(
           onRowDoubleClick={props.onRowDoubleClick}
           rowSelection={rowSelection}
           rows={rows}
+          showTooltip={props.showTooltip ?? false}
           sorting={sortingState}
           table={table}
           toggleRowSelected={toggleRowSelected}
+          wrapText={props.wrapText ?? false}
         />
 
         {(props.enablePagination ?? true) && canPaginate && (

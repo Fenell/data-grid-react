@@ -381,7 +381,6 @@ function App() {
         globalFilter={globalFilter}
         isLoading={isLoading}
         serverSide
-        wrapText
         pagination={paginationModel}
         sorting={sorting}
         getRowId={(row) => row.id}

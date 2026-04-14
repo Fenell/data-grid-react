@@ -322,6 +322,50 @@
     box-shadow var(--grid-transition-base);
 }
 
+.cellContent {
+  width: 100%;
+  min-width: 0;
+}
+
+.cellContentWrap {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.cellContentEllipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 9999;
+  max-width: min(420px, calc(100vw - 24px));
+  padding: 4px 8px;
+  border: 1px solid rgba(41, 92, 155, 0.12);
+  border-radius: 6px;
+  background: rgba(26, 33, 45, 0.96);
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+  word-break: break-word;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.tooltip[data-visible="true"] {
+  opacity: 1;
+  transform: translate(-50%, calc(-100% - 4px));
+}
+
 .tdWrapText {
   white-space: normal;
   word-break: break-word;

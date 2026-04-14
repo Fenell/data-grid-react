@@ -65,6 +65,7 @@ export type DataGridFeatureFlags = {
   enableResize?: boolean;
   enableSort?: boolean;
   enablePagination?: boolean;
+  showTooltip?: boolean;
   wrapText?: boolean;
 };
 
