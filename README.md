@@ -70,6 +70,31 @@ const columns: ColumnDef<EmployeeRow>[] = [
 <DataGrid columns={columns} data={rows} enableSort />
 ```
 
+## Wrap text
+
+- Bật toàn grid bằng `wrapText`.
+- Hoặc bật theo từng cột bằng `wrapText: true` trong `coldef`.
+
+```ts
+const columns: ColumnDef<EmployeeRow>[] = [
+  { id: "name", label: "Họ tên", width: 220, wrapText: true },
+  { id: "dept", label: "Phòng ban", width: 150 }
+];
+```
+
+```tsx
+<DataGrid columns={columns} data={rows} wrapText />
+```
+
+## Show tooltip
+
+- Bật bằng `showTooltip`.
+- Khi nội dung cell vượt chiều rộng cột, cell sẽ hiển thị `...`; hover vào cell sẽ hiện tooltip full nội dung.
+
+```tsx
+<DataGrid columns={columns} data={rows} showTooltip />
+```
+
 ## Client-side (`serverSide = false`)
 
 Chỉ cần truyền `data` đầy đủ và `pageSizeOptions`, grid tự phân trang nội bộ.

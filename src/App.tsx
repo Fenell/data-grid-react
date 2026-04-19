@@ -388,8 +388,8 @@ function App() {
         serverSide={false}
         // pagination={paginationModel}
         // pagination={pagination}
-        pageSizeOptions={[20, 50, 80]}
-        showSummary={false}
+        pageSizeOptions={[20, 50, 100]}
+        showSummary={true}
         sorting={sorting}
         getRowId={(row) => row.id}
         onGlobalFilterChange={setGlobalFilter}
