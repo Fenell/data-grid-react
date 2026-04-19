@@ -113,6 +113,19 @@
   overflow-y: auto;
 }
 
+.summaryScroll {
+  flex: 0 0 auto;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-top: var(--grid-border-row);
+  background: #f6f9ff;
+}
+
+.summaryScroll::-webkit-scrollbar {
+  display: none;
+}
+
 .loadingOverlay {
   position: absolute;
   inset: 0;
@@ -418,6 +431,15 @@ tbody tr:hover .td.pinnedRight {
     inset var(--grid-border-pinned-width) 0 0 var(--grid-border-pinned-color),
     var(--grid-shadow-row-hover),
     var(--grid-shadow-pinned-right);
+}
+
+.summaryRow .summaryTd {
+  background: #f6f9ff;
+  font-weight: 600;
+}
+
+.summaryTable .summaryTd {
+  border-bottom: 0;
 }
 
 .emptyState {

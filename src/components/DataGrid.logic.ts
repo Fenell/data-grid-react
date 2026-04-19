@@ -83,6 +83,7 @@ const createTanStackColumns = <T extends GridRow>(
         maxSize: column.maxWidth,
         meta: {
           align: column.align ?? "center",
+          enableSummary: column.enableSummary ?? false,
           hasCheckbox: true,
           wrapText: wrapText || (column.wrapText ?? false),
         },
@@ -126,6 +127,7 @@ const createTanStackColumns = <T extends GridRow>(
             },
       meta: {
         align: column.align,
+        enableSummary: column.enableSummary ?? false,
         filterOptions: column.options,
         filterType: column.filterType,
         hasCheckbox: false,
@@ -134,6 +136,11 @@ const createTanStackColumns = <T extends GridRow>(
     } satisfies TanStackColumnDef<T>;
   });
 };
+
+type DataSummaryColumn<T extends GridRow> = Exclude<
+  ColumnDef<T>,
+  { cell: "checkBox" }
+>;
 
 const getInitialColumnPinning = <T extends GridRow>(
   columns: ColumnDef<T>[],
@@ -171,6 +178,7 @@ export const useDataGridController = <T extends GridRow>({
   enableResize = true,
   enableSort = true,
   enablePagination = true,
+  showSummary = false,
   wrapText = false,
   serverSide = false,
   pagination,
@@ -249,6 +257,7 @@ export const useDataGridController = <T extends GridRow>({
     paginationModel.pageSizeOptions ?? pageSizeOptions;
   const resolvedServerRowCount = paginationModel.totalRows;
   const resolvedServerPageCount = paginationModel.pageCount;
+  const resolvedServerSummary = paginationModel.summary;
 
   const handlePaginationChange = (
     updater:
@@ -417,6 +426,69 @@ export const useDataGridController = <T extends GridRow>({
     ? (resolvedServerPageCount ?? table.getPageCount())
     : table.getPageCount();
   const canPaginate = enablePagination && table.getPageCount() > 0;
+  const summaryColumns = useMemo(
+    () =>
+      columns
+        .map((column, index) =>
+          column.cell === "checkBox"
+            ? null
+            : {
+                column: column as DataSummaryColumn<T>,
+                index,
+              },
+        )
+        .filter(
+          (item): item is { column: DataSummaryColumn<T>; index: number } =>
+            !!item && !!item.column.enableSummary,
+        ),
+    [columns],
+  );
+
+  const summaryByColumnId = useMemo(() => {
+    if (!showSummary) {
+      return undefined;
+    }
+
+    if (serverSide) {
+      if (!resolvedServerSummary) {
+        return undefined;
+      }
+
+      const mappedSummary = Object.fromEntries(
+        summaryColumns.map(({ column, index }) => [
+          resolveColumnId(column, index),
+          resolvedServerSummary[resolveColumnId(column, index)],
+        ]),
+      );
+
+      return mappedSummary;
+    }
+
+    const summary: Record<string, number> = {};
+
+    summaryColumns.forEach(({ column, index }) => {
+      const columnId = resolveColumnId(column, index);
+      let hasNumericValue = false;
+      let total = 0;
+      const fieldId = column.id;
+
+      localRows.forEach((row) => {
+        const value = row[fieldId];
+        if (typeof value !== "number" || !Number.isFinite(value)) {
+          return;
+        }
+
+        hasNumericValue = true;
+        total += value;
+      });
+
+      if (hasNumericValue) {
+        summary[columnId] = total;
+      }
+    });
+
+    return summary;
+  }, [localRows, resolvedServerSummary, serverSide, showSummary, summaryColumns]);
 
   const api: DataGridApi<T> = {
     applyTransaction,
@@ -474,6 +546,7 @@ export const useDataGridController = <T extends GridRow>({
         pageSize,
       })),
     sortingState,
+    summaryByColumnId,
     table,
     toggleRowSelected,
   };

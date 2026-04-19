@@ -220,7 +220,9 @@ const DataGridTable = <T extends GridRow>({
   onRowDoubleClick,
   rowSelection,
   rows,
+  showSummary,
   showTooltip,
+  summaryByColumnId,
   sorting,
   table,
   toggleRowSelected,
@@ -234,7 +236,9 @@ const DataGridTable = <T extends GridRow>({
   onRowDoubleClick?: (row: T) => void;
   rowSelection: RowSelectionState;
   rows: ReturnType<Table<T>["getRowModel"]>["rows"];
+  showSummary: boolean;
   showTooltip: boolean;
+  summaryByColumnId?: Record<string, number | string | null | undefined>;
   sorting: SortingState;
   table: Table<T>;
   toggleRowSelected: (row: T, checked: boolean) => void;
@@ -244,6 +248,7 @@ const DataGridTable = <T extends GridRow>({
   const leafHeaders = table.getLeafHeaders();
   const bodyScrollRef = useRef<HTMLDivElement>(null);
   const headerScrollRef = useRef<HTMLDivElement>(null);
+  const summaryScrollRef = useRef<HTMLDivElement>(null);
   const syncingScrollRef = useRef(false);
   const [viewportWidth, setViewportWidth] = useState(0);
   const [bodyScrollbarWidth, setBodyScrollbarWidth] = useState(0);
@@ -255,6 +260,12 @@ const DataGridTable = <T extends GridRow>({
   const isSomePageRowsSelected =
     !isAllPageRowsSelected &&
     visiblePageRowIds.some((rowId) => Boolean(rowSelection[String(rowId)]));
+  const summaryLabelColumnId = leafHeaders.find(
+    (header) => !!header.column.columnDef.meta?.enableSummary,
+  )?.column.id;
+  const shouldRenderSummaryRow =
+    showSummary &&
+    leafHeaders.some((header) => !!header.column.columnDef.meta?.enableSummary);
 
   useLayoutEffect(() => {
     const element = bodyScrollRef.current;
@@ -278,18 +289,27 @@ const DataGridTable = <T extends GridRow>({
   useEffect(() => {
     const bodyElement = bodyScrollRef.current;
     const headerElement = headerScrollRef.current;
+    const summaryElement = summaryScrollRef.current;
 
     if (!bodyElement || !headerElement) {
       return;
     }
 
-    const syncScroll = (source: HTMLDivElement, target: HTMLDivElement) => {
+    const syncScroll = (
+      source: HTMLDivElement,
+      targets: Array<HTMLDivElement | null>,
+    ) => {
       if (syncingScrollRef.current) {
         return;
       }
 
       syncingScrollRef.current = true;
-      target.scrollLeft = source.scrollLeft;
+      targets.forEach((target) => {
+        if (!target || target === source) {
+          return;
+        }
+        target.scrollLeft = source.scrollLeft;
+      });
 
       requestAnimationFrame(() => {
         syncingScrollRef.current = false;
@@ -297,11 +317,18 @@ const DataGridTable = <T extends GridRow>({
     };
 
     const handleBodyScroll = () => {
-      syncScroll(bodyElement, headerElement);
+      syncScroll(bodyElement, [headerElement, summaryElement]);
     };
 
     const handleHeaderScroll = () => {
-      syncScroll(headerElement, bodyElement);
+      syncScroll(headerElement, [bodyElement, summaryElement]);
+    };
+
+    const handleSummaryScroll = () => {
+      if (!summaryElement) {
+        return;
+      }
+      syncScroll(summaryElement, [bodyElement, headerElement]);
     };
 
     bodyElement.addEventListener("scroll", handleBodyScroll, {
@@ -310,12 +337,16 @@ const DataGridTable = <T extends GridRow>({
     headerElement.addEventListener("scroll", handleHeaderScroll, {
       passive: true,
     });
+    summaryElement?.addEventListener("scroll", handleSummaryScroll, {
+      passive: true,
+    });
 
     return () => {
       bodyElement.removeEventListener("scroll", handleBodyScroll);
       headerElement.removeEventListener("scroll", handleHeaderScroll);
+      summaryElement?.removeEventListener("scroll", handleSummaryScroll);
     };
-  }, []);
+  }, [shouldRenderSummaryRow]);
 
   useEffect(() => {
     if (!tooltipState) {
@@ -751,6 +782,84 @@ const DataGridTable = <T extends GridRow>({
             </tbody>
           </table>
         </div>
+        {shouldRenderSummaryRow && (
+          <div ref={summaryScrollRef} className={styles.summaryScroll}>
+            <table
+              className={cx(styles.table, styles.summaryTable)}
+              style={{ width: resolvedColumnWidths.tableWidth }}
+            >
+              <colgroup>
+                {leafHeaders.map((header) => (
+                  <col
+                    key={`${header.id}-summary-col`}
+                    style={{
+                      width: resolvedColumnWidths.widthMap[header.column.id],
+                      minWidth: resolvedColumnWidths.widthMap[header.column.id],
+                    }}
+                  />
+                ))}
+              </colgroup>
+              <tbody>
+                <tr className={styles.summaryRow}>
+                  {leafHeaders.map((header) => {
+                    const alignClassName = getAlignClassName(
+                      header.column.columnDef.meta?.align,
+                    );
+                    const pinnedStyles = getPinnedColumnStyles(
+                      header.column,
+                      pinnedOffsets,
+                    );
+                    const rawSummaryValue = summaryByColumnId?.[header.column.id];
+                    const canShowSummary = Boolean(
+                      header.column.columnDef.meta?.enableSummary,
+                    );
+
+                    let displayValue = "";
+                    if (!canShowSummary) {
+                      displayValue = "";
+                    } else if (typeof rawSummaryValue === "number") {
+                      displayValue = rawSummaryValue.toLocaleString("vi-VN");
+                    } else if (
+                      rawSummaryValue !== undefined &&
+                      rawSummaryValue !== null
+                    ) {
+                      displayValue = String(rawSummaryValue);
+                    } else if (
+                      summaryLabelColumnId &&
+                      header.column.id === summaryLabelColumnId
+                    ) {
+                      displayValue = "Tổng cộng";
+                    }
+
+                    return (
+                      <td
+                        key={`${header.id}-summary`}
+                        className={cx(
+                          styles.td,
+                          styles.summaryTd,
+                          alignClassName,
+                          header.column.getIsPinned() && styles.tdPinned,
+                          header.column.getIsPinned() === "left" &&
+                            styles.pinnedLeft,
+                          header.column.getIsPinned() === "right" &&
+                            styles.pinnedRight,
+                        )}
+                        style={{
+                          ...pinnedStyles,
+                          width: resolvedColumnWidths.widthMap[header.column.id],
+                          minWidth:
+                            resolvedColumnWidths.widthMap[header.column.id],
+                        }}
+                      >
+                        <div className={styles.cellContent}>{displayValue}</div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
       {showTooltip &&
         tooltipState &&
@@ -788,6 +897,7 @@ const DataGridInner = <T extends GridRow>(
     setPageIndex,
     setPageSize,
     sortingState,
+    summaryByColumnId,
     table,
     toggleRowSelected,
   } = useDataGridController(props);
@@ -850,7 +960,9 @@ const DataGridInner = <T extends GridRow>(
           onRowDoubleClick={props.onRowDoubleClick}
           rowSelection={rowSelection}
           rows={rows}
+          showSummary={props.showSummary ?? false}
           showTooltip={props.showTooltip ?? false}
+          summaryByColumnId={summaryByColumnId}
           sorting={sortingState}
           table={table}
           toggleRowSelected={toggleRowSelected}

@@ -19,6 +19,7 @@ export type ColumnAlign = "left" | "center" | "right";
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends TanStackRowData, TValue> {
     align?: ColumnAlign;
+    enableSummary?: boolean;
     filterType?: ColumnFilterType;
     filterOptions?: readonly string[];
     hasCheckbox?: boolean;
@@ -27,6 +28,7 @@ declare module "@tanstack/react-table" {
 }
 
 type SharedColumnOptions = {
+  enableSummary?: boolean;
   width?: number;
   minWidth?: number;
   maxWidth?: number;
@@ -65,6 +67,7 @@ export type DataGridFeatureFlags = {
   enableResize?: boolean;
   enableSort?: boolean;
   enablePagination?: boolean;
+  showSummary?: boolean;
   showTooltip?: boolean;
   wrapText?: boolean;
 };
@@ -73,6 +76,7 @@ export type DataGridPaginationModel = PaginationState & {
   pageSizeOptions?: number[];
   totalRows?: number;
   pageCount?: number;
+  summary?: Record<string, number | string | null | undefined>;
 };
 
 export type DataGridServerPaginationProps = {

@@ -53,7 +53,7 @@ export const ROLES = [
 ] as const;
 export const STATUSES = ["active", "inactive", "pending"] as const;
 export const allEmployees: EmployeeRow[] = Array.from(
-  { length: 80 },
+  { length: 1000 },
   (_, index) => ({
     id: index + 1,
     name:

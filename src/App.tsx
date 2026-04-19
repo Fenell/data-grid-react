@@ -5,7 +5,6 @@ import type { SortingState } from "@tanstack/react-table";
 import DataGrid, {
   type ColumnDef,
   type DataGridPaginationModel,
-  type DataGridReadyEvent,
   type DataGridRef,
 } from "./components/";
 import {
@@ -122,6 +121,7 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
     sortable: true,
     width: 150,
     align: "right",
+    enableSummary: true,
     cell: (row) => (
       <span style={{ fontVariantNumeric: "tabular-nums" }}>
         {row.salary.toLocaleString("vi-VN")}đ
@@ -249,32 +249,35 @@ function App() {
       pageSize: responseMeta.pageSize,
       pageCount: responseMeta.pageNumber,
       totalRows: responseMeta.totalRecord,
+      summary: {
+        salary: 123456789,
+      },
     }),
     [pagination, responseMeta],
   );
 
-  useEffect(() => {
-    let active = true;
-    setIsLoading(true);
+  // useEffect(() => {
+  //   let active = true;
+  //   setIsLoading(true);
 
-    fetchEmployees(requestModel).then((response) => {
-      if (!active) {
-        return;
-      }
+  //   fetchEmployees(requestModel).then((response) => {
+  //     if (!active) {
+  //       return;
+  //     }
 
-      setPageRows(response.data);
-      setResponseMeta({
-        pageNumber: response.pageNumber,
-        pageSize: response.pageSize,
-        totalRecord: response.totalRecord,
-      });
-      setIsLoading(false);
-    });
+  //     setPageRows(response.data);
+  //     setResponseMeta({
+  //       pageNumber: response.pageNumber,
+  //       pageSize: response.pageSize,
+  //       totalRecord: response.totalRecord,
+  //     });
+  //     setIsLoading(false);
+  //   });
 
-    return () => {
-      active = false;
-    };
-  }, [requestModel]);
+  //   return () => {
+  //     active = false;
+  //   };
+  // }, [requestModel]);
 
   useEffect(() => {
     setPagination((current) => ({
@@ -282,11 +285,6 @@ function App() {
       pageIndex: 0,
     }));
   }, [globalFilter, sorting]);
-
-  const handleOnGridReady = ({ api, ref }: DataGridReadyEvent<EmployeeRow>) => {
-    // api.setGlobalFilter("thuật");
-    api.setColumnsVisible(["salary"], false);
-  };
 
   return (
     <>
@@ -381,19 +379,23 @@ function App() {
       <DataGrid<EmployeeRow>
         ref={gridRef}
         columns={employeeColumns}
-        data={pageRows}
+        // data={pageRows}
+        data={allEmployees}
         contentHeight={500}
         enableColumnFilters={false}
         globalFilter={globalFilter}
         isLoading={isLoading}
-        serverSide
-        pagination={paginationModel}
+        serverSide={false}
+        // pagination={paginationModel}
+        // pagination={pagination}
+        pageSizeOptions={[20, 50, 80]}
+        showSummary={false}
         sorting={sorting}
         getRowId={(row) => row.id}
         onGlobalFilterChange={setGlobalFilter}
-        onPaginationChange={(e) => {
-          setPagination(e);
-        }}
+        // onPaginationChange={(e) => {
+        //   setPagination(e);
+        // }}
         // onGridReady={handleOnGridReady}
         onRowClick={(row) => console.log("row click", row)}
         onRowDoubleClick={(row) => console.log("row double click", row)}
