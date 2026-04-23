@@ -1,12 +1,8 @@
 import "./App.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { SortingState } from "@tanstack/react-table";
 
-import DataGrid, {
-  type ColumnDef,
-  type DataGridPaginationModel,
-  type DataGridRef,
-} from "./components/";
+import DataGrid, { type ColumnDef, type DataGridRef } from "./components/";
 import {
   allEmployees,
   DEPTS,
@@ -14,67 +10,6 @@ import {
   STATUSES,
   type EmployeeRow,
 } from "./test/data-test";
-
-type EmployeeListQuery = {
-  pageIndex: number;
-  pageSize: number;
-  sorting: SortingState;
-  globalFilter: string;
-};
-
-type EmployeeListResponse = {
-  pageNumber: number;
-  pageSize: number;
-  data: EmployeeRow[];
-  totalRecord: number;
-};
-
-const fetchEmployees = (
-  query: EmployeeListQuery,
-): Promise<EmployeeListResponse> => {
-  return new Promise((resolve) => {
-    window.setTimeout(() => {
-      let nextRows = [...allEmployees];
-
-      if (query.globalFilter) {
-        const keyword = query.globalFilter.toLowerCase();
-        nextRows = nextRows.filter((row) =>
-          Object.values(row).some((value) =>
-            String(value ?? "")
-              .toLowerCase()
-              .includes(keyword),
-          ),
-        );
-      }
-
-      if (query.sorting[0]) {
-        const activeSort = query.sorting[0];
-
-        nextRows.sort((a, b) => {
-          const aValue = a[activeSort.id as keyof EmployeeRow];
-          const bValue = b[activeSort.id as keyof EmployeeRow];
-          const comparison =
-            typeof aValue === "number" && typeof bValue === "number"
-              ? aValue - bValue
-              : String(aValue ?? "").localeCompare(String(bValue ?? ""), "vi");
-
-          return activeSort.desc ? -comparison : comparison;
-        });
-      }
-
-      const totalRecords = nextRows.length;
-      const start = query.pageIndex * query.pageSize;
-      const end = start + query.pageSize;
-
-      resolve({
-        pageNumber: Math.max(1, Math.ceil(totalRecords / query.pageSize || 1)),
-        pageSize: query.pageSize,
-        data: nextRows.slice(start, end),
-        totalRecord: totalRecords,
-      });
-    }, 500);
-  });
-};
 
 const employeeColumns: ColumnDef<EmployeeRow>[] = [
   {
@@ -98,10 +33,10 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
   },
   {
     id: "dept",
-    label: "Phòng ban",
+    label: "Phòng ban Mai tuấn",
     sortable: true,
     filterable: true,
-    align: "center",
+    // align: "center",
     filterType: "select",
     options: ["", ...DEPTS],
     width: 150,
@@ -219,78 +154,12 @@ function App() {
   const gridRef = useRef<DataGridRef<EmployeeRow>>(null);
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState<DataGridPaginationModel>({
-    pageIndex: 0,
-    pageSize: 20,
-    pageSizeOptions: [20, 50, 80],
-  });
-  const [pageRows, setPageRows] = useState<EmployeeRow[]>([]);
-  const [responseMeta, setResponseMeta] = useState<
-    Pick<EmployeeListResponse, "pageNumber" | "pageSize" | "totalRecord">
-  >({
-    pageNumber: 1,
-    pageSize: 20,
-    totalRecord: 0,
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const requestModel = useMemo(
-    () => ({
-      pageIndex: pagination.pageIndex,
-      pageSize: pagination.pageSize,
-      sorting,
-      globalFilter,
-    }),
-    [globalFilter, pagination.pageIndex, pagination.pageSize, sorting],
-  );
-
-  const paginationModel = useMemo(
-    () => ({
-      ...pagination,
-      pageSize: responseMeta.pageSize,
-      pageCount: responseMeta.pageNumber,
-      totalRows: responseMeta.totalRecord,
-      summary: {
-        salary: 123456789,
-      },
-    }),
-    [pagination, responseMeta],
-  );
-
-  // useEffect(() => {
-  //   let active = true;
-  //   setIsLoading(true);
-
-  //   fetchEmployees(requestModel).then((response) => {
-  //     if (!active) {
-  //       return;
-  //     }
-
-  //     setPageRows(response.data);
-  //     setResponseMeta({
-  //       pageNumber: response.pageNumber,
-  //       pageSize: response.pageSize,
-  //       totalRecord: response.totalRecord,
-  //     });
-  //     setIsLoading(false);
-  //   });
-
-  //   return () => {
-  //     active = false;
-  //   };
-  // }, [requestModel]);
-
-  useEffect(() => {
-    setPagination((current) => ({
-      ...current,
-      pageIndex: 0,
-    }));
-  }, [globalFilter, sorting]);
 
   return (
     <>
       <button
         onClick={() => {
-          const firstRow = pageRows[0];
+          const firstRow = allEmployees[0];
           if (!firstRow) {
             return;
           }
@@ -384,10 +253,7 @@ function App() {
         contentHeight={500}
         enableColumnFilters={false}
         globalFilter={globalFilter}
-        isLoading={isLoading}
         serverSide={false}
-        // pagination={paginationModel}
-        // pagination={pagination}
         pageSizeOptions={[20, 50, 100]}
         showSummary={true}
         sorting={sorting}

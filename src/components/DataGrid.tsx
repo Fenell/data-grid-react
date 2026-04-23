@@ -579,10 +579,12 @@ const DataGridTable = <T extends GridRow>({
                                     type="checkbox"
                                   />
                                 )}
-                                {flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
+                                <span className={styles.headerLabel}>
+                                  {flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                  )}
+                                </span>
                                 <SortIcon direction={sortingDirection} />
                               </span>
                             </div>
