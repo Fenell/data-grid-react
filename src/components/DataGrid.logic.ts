@@ -59,12 +59,25 @@ const compareCellValues = (left: unknown, right: unknown): number => {
   return VIETNAMESE_COLLATOR.compare(String(left), String(right));
 };
 
+const formatCellValue = (
+  value: unknown,
+  valueFormatter?: string | ((value: unknown) => string),
+) => {
+  if (typeof valueFormatter === "function") {
+    return valueFormatter(value);
+  }
+  if (typeof valueFormatter === "string") {
+    return valueFormatter;
+  }
+  return String(value ?? "");
+};
+
 const resolveColumnId = <T extends GridRow>(
   column: ColumnDef<T>,
   index: number,
 ) => {
-  if ("id" in column && column.id) {
-    return String(column.id);
+  if ("field" in column && column.field) {
+    return String(column.field);
   }
   return `__checkbox_${index}`;
 };
@@ -83,7 +96,7 @@ const createTanStackColumns = <T extends GridRow>(
     if (column.cell === "checkBox") {
       return {
         id: columnId,
-        header: column.label ?? "",
+        header: column.headerName ?? "",
         cell: ({ row }) =>
           createElement("input", {
             "aria-label": `Select row ${row.id}`,
@@ -124,14 +137,14 @@ const createTanStackColumns = <T extends GridRow>(
 
     return {
       id: columnId,
-      accessorFn: (row) => row[column.id],
-      header: column.label,
+      accessorFn: (row) => row[column.field],
+      header: column.headerName,
       cell: ({ row }) => {
         if (column.cell) {
           return column.cell(row.original);
         }
-        const value = row.original[column.id];
-        return String(value ?? "");
+        const value = row.original[column.field];
+        return formatCellValue(value, column.valueFormatter);
       },
       enableSorting: column.sortable ?? false,
       sortingFn: (rowA, rowB, colId) =>
@@ -504,7 +517,7 @@ export const useDataGridController = <T extends GridRow>({
       const columnId = resolveColumnId(column, index);
       let hasNumericValue = false;
       let total = 0;
-      const fieldId = column.id;
+      const fieldId = column.field;
 
       localRows.forEach((row) => {
         const value = row[fieldId];

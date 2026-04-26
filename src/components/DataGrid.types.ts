@@ -12,7 +12,7 @@ export type GridRow = {
   id: number | string;
 } & Record<string, unknown>;
 
-export type ColumnId<T extends GridRow> =
+export type ColumnField<T extends GridRow> =
   | Extract<keyof T, string>
   | (string & {});
 export type ColumnFilterType = "select";
@@ -35,6 +35,7 @@ type SharedColumnOptions = {
   minWidth?: number;
   maxWidth?: number;
   wrapText?: boolean;
+  type?: string;
   align?: ColumnAlign;
   pinned?: "left" | "right";
   hide?: boolean;
@@ -44,19 +45,20 @@ type SharedColumnOptions = {
 };
 
 type DataColumnDef<T extends GridRow> = {
-  id: ColumnId<T>;
-  label: string;
+  field: ColumnField<T>;
+  headerName: string;
   sortable?: boolean;
   filterable?: boolean;
   filterType?: ColumnFilterType;
   options?: readonly string[];
+  valueFormatter?: string | ((value: unknown) => string);
   cell?: (row: T) => ReactNode;
 } & SharedColumnOptions;
 
 type CheckboxColumnDef = {
   cell: "checkBox";
-  id?: string;
-  label?: string;
+  field?: string;
+  headerName?: string;
 } & SharedColumnOptions;
 
 export type ColumnDef<T extends GridRow> = DataColumnDef<T> | CheckboxColumnDef;
