@@ -1,5 +1,6 @@
 import "./App.css";
 import { useRef, useState } from "react";
+import type { MouseEvent } from "react";
 import type { SortingState } from "@tanstack/react-table";
 
 import DataGrid, { type ColumnDef, type DataGridRef } from "./components/";
@@ -11,7 +12,56 @@ import {
   type EmployeeRow,
 } from "./test/data-test";
 
-const employeeColumns: ColumnDef<EmployeeRow>[] = [
+type RowActionEvent = {
+  actionKey: string;
+  row: EmployeeRow;
+};
+
+type RowActionButtonCellProps = {
+  actionKey: string;
+  buttonLabel: string;
+  row: EmployeeRow;
+  onAction: (event: RowActionEvent) => void;
+};
+
+function RowActionButtonCell({
+  actionKey,
+  buttonLabel,
+  row,
+  onAction,
+}: RowActionButtonCellProps) {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onAction({
+      actionKey,
+      row,
+    });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      onDoubleClick={(event) => event.stopPropagation()}
+      style={{
+        border: "none",
+        borderRadius: 999,
+        background: "#e9f5ff",
+        color: "#0f4c81",
+        padding: "4px 10px",
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+      }}
+    >
+      {buttonLabel}
+    </button>
+  );
+}
+
+const createEmployeeColumns = (
+  onCellAction: (event: RowActionEvent) => void,
+): ColumnDef<EmployeeRow>[] => [
   {
     cell: "checkBox",
     pinned: "left",
@@ -36,7 +86,6 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
     label: "Phòng ban Mai tuấn",
     sortable: true,
     filterable: true,
-    // align: "center",
     filterType: "select",
     options: ["", ...DEPTS],
     width: 150,
@@ -112,9 +161,8 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
     filterable: true,
     filterType: "select",
     options: ["", ...STATUSES],
-    width: 250,
+    width: 100,
     align: "center",
-    // pinned: "right",
     cell: (row) => {
       const palette =
         row.status === "active"
@@ -141,6 +189,21 @@ const employeeColumns: ColumnDef<EmployeeRow>[] = [
     },
   },
   {
+    id: "actions",
+    label: "Hành động",
+    width: 130,
+    align: "center",
+    pinned: "right",
+    cell: (row) => (
+      <RowActionButtonCell
+        row={row}
+        actionKey="open-profile"
+        buttonLabel="Xem hồ sơ"
+        onAction={onCellAction}
+      />
+    ),
+  },
+  {
     id: "joined",
     label: "Ngày vào",
     sortable: true,
@@ -154,6 +217,14 @@ function App() {
   const gridRef = useRef<DataGridRef<EmployeeRow>>(null);
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [lastAction, setLastAction] = useState<RowActionEvent | null>(null);
+
+  const handleCellAction = (event: RowActionEvent) => {
+    setLastAction(event);
+    console.log("cell custom action", event);
+  };
+
+  const employeeColumns = createEmployeeColumns(handleCellAction);
 
   return (
     <>
@@ -191,6 +262,22 @@ function App() {
       >
         Lấy dòng đã chọn
       </button>
+
+      <div
+        style={{
+          marginBottom: 12,
+          border: "1px solid #d7e7fb",
+          borderRadius: 8,
+          padding: "8px 12px",
+          background: "#f8fbff",
+          fontSize: 13,
+        }}
+      >
+        {lastAction
+          ? `Cell action: ${lastAction.actionKey} | row id: ${lastAction.row.id} | name: ${lastAction.row.name}`
+          : "Chưa có sự kiện từ custom cell"}
+      </div>
+
       <div
         style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}
       >
@@ -227,6 +314,7 @@ function App() {
           Hiện cột lương
         </button>
       </div>
+
       <div style={{ marginBottom: 12 }}>
         <input
           placeholder="Tìm kiếm bên ngoài grid..."
@@ -248,7 +336,6 @@ function App() {
       <DataGrid<EmployeeRow>
         ref={gridRef}
         columns={employeeColumns}
-        // data={pageRows}
         data={allEmployees}
         contentHeight={500}
         enableColumnFilters={false}
@@ -259,10 +346,6 @@ function App() {
         sorting={sorting}
         getRowId={(row) => row.id}
         onGlobalFilterChange={setGlobalFilter}
-        // onPaginationChange={(e) => {
-        //   setPagination(e);
-        // }}
-        // onGridReady={handleOnGridReady}
         onRowClick={(row) => console.log("row click", row)}
         onRowDoubleClick={(row) => console.log("row double click", row)}
         onSortingChange={setSorting}

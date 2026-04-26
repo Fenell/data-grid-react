@@ -12,7 +12,9 @@ export type GridRow = {
   id: number | string;
 } & Record<string, unknown>;
 
-export type ColumnId<T extends GridRow> = Extract<keyof T, string>;
+export type ColumnId<T extends GridRow> =
+  | Extract<keyof T, string>
+  | (string & {});
 export type ColumnFilterType = "select";
 export type ColumnAlign = "left" | "center" | "right";
 
