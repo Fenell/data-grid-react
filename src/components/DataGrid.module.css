@@ -6,9 +6,10 @@
   --grid-radius-md: var(--border-radius-md);
   --grid-radius-lg: 8px;
   --grid-border-input: 0.5px solid var(--color-border-secondary);
-  --grid-border-muted: 1px solid #d7e7fb;
-  --grid-border-row: 1px solid #d7e7fb;
-  --grid-border-pinned-color: #c5daf6;
+  --grid-border-muted: 1px solid var(--grid-border-color);
+  --grid-border-color: #e0e0e0;
+  --grid-border-row: 1px solid var(--grid-border-color);
+  --grid-border-pinned-color: var(--grid-border-color);
   --grid-border-pinned-width: 2px;
   /* --grid-bg-base: var(--color-background-primary); */
   --grid-bg-base: #fff;
