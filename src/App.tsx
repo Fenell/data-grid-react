@@ -377,6 +377,7 @@ function App() {
         globalFilter={globalFilter}
         serverSide={false}
         enableSort
+        enableResize
         pageSizeOptions={[20, 50, 100]}
         showSummary={true}
         // sorting={sorting}
