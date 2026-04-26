@@ -171,12 +171,12 @@ const getInitialColumnVisibility = <T extends GridRow>(
 export const useDataGridController = <T extends GridRow>({
   columns,
   data,
-  enableGlobalFilter = true,
-  enableColumnFilters = true,
+  enableGlobalFilter = false,
+  enableColumnFilters = false,
   enableColumnVisibility = true,
-  enablePinning = true,
-  enableResize = true,
-  enableSort = true,
+  enablePinning = false,
+  enableResize = false,
+  enableSort = false,
   enablePagination = true,
   showSummary = false,
   wrapText = false,
@@ -488,7 +488,13 @@ export const useDataGridController = <T extends GridRow>({
     });
 
     return summary;
-  }, [localRows, resolvedServerSummary, serverSide, showSummary, summaryColumns]);
+  }, [
+    localRows,
+    resolvedServerSummary,
+    serverSide,
+    showSummary,
+    summaryColumns,
+  ]);
 
   const api: DataGridApi<T> = {
     applyTransaction,

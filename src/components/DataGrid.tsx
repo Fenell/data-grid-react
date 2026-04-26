@@ -428,7 +428,11 @@ const DataGridTable = <T extends GridRow>({
   return (
     <div
       className={styles.gridContainer}
-      style={contentHeight ? { height: contentHeight } : undefined}
+      style={
+        contentHeight
+          ? { height: contentHeight }
+          : { flex: "1 1 auto", minHeight: 0 }
+      }
     >
       <div className={styles.gridContainerWarp}>
         <div
@@ -943,7 +947,13 @@ const DataGridInner = <T extends GridRow>(
   }, [pageSizeMenuOpen]);
 
   return (
-    <div className={styles.wrap} style={{ width: props.width ?? "100%" }}>
+    <div
+      className={styles.wrap}
+      style={{
+        width: props.width ?? "100%",
+        height: props.contentHeight ? undefined : "100%",
+      }}
+    >
       <div className={styles.gridFrame}>
         {props.isLoading && (
           <div className={styles.loadingOverlay}>

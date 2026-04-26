@@ -1,5 +1,5 @@
 import "./App.css";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import type { SortingState } from "@tanstack/react-table";
 
@@ -77,7 +77,7 @@ const createEmployeeColumns = (
   },
   {
     id: "name",
-    label: "Họ tên",
+    label: "Họ tên1111",
     sortable: true,
     width: 230,
   },
@@ -215,22 +215,51 @@ const createEmployeeColumns = (
 
 function App() {
   const gridRef = useRef<DataGridRef<EmployeeRow>>(null);
+  const loadingTimerRef = useRef<number | null>(null);
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [lastAction, setLastAction] = useState<RowActionEvent | null>(null);
+  const [rows, setRows] = useState<EmployeeRow[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCellAction = (event: RowActionEvent) => {
+  const handleCellAction = useCallback((event: RowActionEvent) => {
     setLastAction(event);
     console.log("cell custom action", event);
-  };
+  }, []);
 
-  const employeeColumns = createEmployeeColumns(handleCellAction);
+  const employeeColumns = useMemo(
+    () => createEmployeeColumns(handleCellAction),
+    [handleCellAction],
+  );
+
+  const loadEmployeesFromApi = useCallback(() => {
+    if (loadingTimerRef.current !== null) {
+      window.clearTimeout(loadingTimerRef.current);
+    }
+
+    setIsLoading(true);
+    loadingTimerRef.current = window.setTimeout(() => {
+      setRows(allEmployees);
+      setIsLoading(false);
+      loadingTimerRef.current = null;
+    }, 1300);
+  }, []);
+
+  useEffect(() => {
+    loadEmployeesFromApi();
+
+    return () => {
+      if (loadingTimerRef.current !== null) {
+        window.clearTimeout(loadingTimerRef.current);
+      }
+    };
+  }, [loadEmployeesFromApi]);
 
   return (
     <>
       <button
         onClick={() => {
-          const firstRow = allEmployees[0];
+          const firstRow = rows[0];
           if (!firstRow) {
             return;
           }
@@ -261,6 +290,13 @@ function App() {
         type="button"
       >
         Lấy dòng đã chọn
+      </button>
+      <button
+        onClick={loadEmployeesFromApi}
+        style={{ marginBottom: 8, marginLeft: 8 }}
+        type="button"
+      >
+        Giả lập load dữ liệu API
       </button>
 
       <div
@@ -336,7 +372,8 @@ function App() {
       <DataGrid<EmployeeRow>
         ref={gridRef}
         columns={employeeColumns}
-        data={allEmployees}
+        data={rows}
+        isLoading={isLoading}
         contentHeight={500}
         enableColumnFilters={false}
         globalFilter={globalFilter}
