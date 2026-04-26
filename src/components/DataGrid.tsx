@@ -815,7 +815,8 @@ const DataGridTable = <T extends GridRow>({
                       header.column,
                       pinnedOffsets,
                     );
-                    const rawSummaryValue = summaryByColumnId?.[header.column.id];
+                    const rawSummaryValue =
+                      summaryByColumnId?.[header.column.id];
                     const canShowSummary = Boolean(
                       header.column.columnDef.meta?.enableSummary,
                     );
@@ -852,7 +853,8 @@ const DataGridTable = <T extends GridRow>({
                         )}
                         style={{
                           ...pinnedStyles,
-                          width: resolvedColumnWidths.widthMap[header.column.id],
+                          width:
+                            resolvedColumnWidths.widthMap[header.column.id],
                           minWidth:
                             resolvedColumnWidths.widthMap[header.column.id],
                         }}
@@ -951,7 +953,7 @@ const DataGridInner = <T extends GridRow>(
       className={styles.wrap}
       style={{
         width: props.width ?? "100%",
-        height: props.contentHeight ? undefined : "100%",
+        height: props.contentHeight || "100%",
       }}
     >
       <div className={styles.gridFrame}>
@@ -966,7 +968,7 @@ const DataGridInner = <T extends GridRow>(
         <DataGridTable
           contentHeight={props.contentHeight}
           emptyMessage={props.emptyMessage ?? "Không có dữ liệu phù hợp"}
-          enableColumnFilters={props.enableColumnFilters ?? true}
+          enableColumnFilters={props.enableColumnFilters ?? false}
           enableResize={props.enableResize ?? true}
           onRowClick={props.onRowClick}
           onRowDoubleClick={props.onRowDoubleClick}
