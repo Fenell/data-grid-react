@@ -27,6 +27,38 @@ import type {
   GridRow,
 } from "./DataGrid.types";
 
+const VIETNAMESE_COLLATOR = new Intl.Collator("vi", {
+  numeric: true,
+  sensitivity: "base",
+  ignorePunctuation: true,
+});
+
+const compareCellValues = (left: unknown, right: unknown): number => {
+  if (left == null && right == null) {
+    return 0;
+  }
+  if (left == null) {
+    return -1;
+  }
+  if (right == null) {
+    return 1;
+  }
+
+  if (typeof left === "number" && typeof right === "number") {
+    return left - right;
+  }
+
+  if (left instanceof Date && right instanceof Date) {
+    return left.getTime() - right.getTime();
+  }
+
+  if (typeof left === "boolean" && typeof right === "boolean") {
+    return Number(left) - Number(right);
+  }
+
+  return VIETNAMESE_COLLATOR.compare(String(left), String(right));
+};
+
 const resolveColumnId = <T extends GridRow>(
   column: ColumnDef<T>,
   index: number,
@@ -102,6 +134,8 @@ const createTanStackColumns = <T extends GridRow>(
         return String(value ?? "");
       },
       enableSorting: column.sortable ?? false,
+      sortingFn: (rowA, rowB, colId) =>
+        compareCellValues(rowA.getValue(colId), rowB.getValue(colId)),
       enableColumnFilter: column.filterable ?? false,
       enableHiding: column.enableHiding ?? true,
       enablePinning: column.enablePinning ?? true,

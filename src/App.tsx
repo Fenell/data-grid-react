@@ -1,7 +1,6 @@
 import "./App.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
-import type { SortingState } from "@tanstack/react-table";
 
 import DataGrid, { type ColumnDef, type DataGridRef } from "./components/";
 import {
@@ -217,7 +216,6 @@ function App() {
   const gridRef = useRef<DataGridRef<EmployeeRow>>(null);
   const loadingTimerRef = useRef<number | null>(null);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [lastAction, setLastAction] = useState<RowActionEvent | null>(null);
   const [rows, setRows] = useState<EmployeeRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -378,14 +376,15 @@ function App() {
         enableColumnFilters={false}
         globalFilter={globalFilter}
         serverSide={false}
+        enableSort
         pageSizeOptions={[20, 50, 100]}
         showSummary={true}
-        sorting={sorting}
+        // sorting={sorting}
         getRowId={(row) => row.id}
         onGlobalFilterChange={setGlobalFilter}
         onRowClick={(row) => console.log("row click", row)}
         onRowDoubleClick={(row) => console.log("row double click", row)}
-        onSortingChange={setSorting}
+        // onSortingChange={setSorting}
       />
     </>
   );
