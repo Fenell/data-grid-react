@@ -464,10 +464,34 @@ tbody tr:hover .td.pinnedRight {
 .summaryRow .summaryTd {
   background: #f6f9ff;
   font-weight: 600;
+  padding: 0 12px;
 }
 
 .summaryTable .summaryTd {
   border-bottom: 0;
+}
+
+.summaryCellContent {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+}
+
+.summaryCellContentLeft {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.summaryCellContentCenter {
+  justify-content: center;
+  text-align: center;
+}
+
+.summaryCellContentRight {
+  justify-content: flex-end;
+  text-align: right;
 }
 
 .emptyState {

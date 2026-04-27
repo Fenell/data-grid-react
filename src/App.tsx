@@ -103,7 +103,7 @@ const createEmployeeColumns = (
     headerName: "Lương (VNĐ)",
     sortable: true,
     width: 150,
-    align: "right",
+    align: "left",
     enableSummary: true,
     valueFormatter: (value) => `${Number(value ?? 0).toLocaleString("vi-VN")}đ`,
   },
@@ -368,7 +368,7 @@ function App() {
         columns={employeeColumns}
         data={rows}
         isLoading={isLoading}
-        contentHeight={500}
+        // contentHeight={500}
         enableColumnFilters={false}
         globalFilter={globalFilter}
         serverSide={false}

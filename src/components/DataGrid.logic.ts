@@ -72,6 +72,28 @@ const formatCellValue = (
   return String(value ?? "");
 };
 
+const getValueByFieldPath = (row: GridRow, fieldPath: string): unknown => {
+  if (!fieldPath) {
+    return undefined;
+  }
+
+  if (Object.hasOwn(row, fieldPath)) {
+    return row[fieldPath];
+  }
+
+  return fieldPath
+    .split(".")
+    .reduce<unknown>((currentValue, segment) => {
+      if (currentValue === null || currentValue === undefined) {
+        return undefined;
+      }
+      if (typeof currentValue !== "object") {
+        return undefined;
+      }
+      return (currentValue as Record<string, unknown>)[segment];
+    }, row);
+};
+
 const resolveColumnId = <T extends GridRow>(
   column: ColumnDef<T>,
   index: number,
@@ -137,13 +159,13 @@ const createTanStackColumns = <T extends GridRow>(
 
     return {
       id: columnId,
-      accessorFn: (row) => row[column.field],
+      accessorFn: (row) => getValueByFieldPath(row, String(column.field)),
       header: column.headerName,
       cell: ({ row }) => {
         if (column.cell) {
           return column.cell(row.original);
         }
-        const value = row.original[column.field];
+        const value = getValueByFieldPath(row.original, String(column.field));
         return formatCellValue(value, column.valueFormatter);
       },
       enableSorting: column.sortable ?? false,
@@ -520,7 +542,7 @@ export const useDataGridController = <T extends GridRow>({
       const fieldId = column.field;
 
       localRows.forEach((row) => {
-        const value = row[fieldId];
+        const value = getValueByFieldPath(row, String(fieldId));
         if (typeof value !== "number" || !Number.isFinite(value)) {
           return;
         }
