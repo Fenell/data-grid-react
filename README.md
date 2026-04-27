@@ -7,6 +7,7 @@ npm i @tanstack/react-table
 ```ts
 import DataGrid, {
   type ColumnDef,
+  type DataGridCellComponentProps,
   type DataGridPaginationModel,
   type DataGridRef,
 } from "./components";
@@ -24,11 +25,11 @@ type EmployeeRow = {
 
 const columns: ColumnDef<EmployeeRow>[] = [
   { cell: "checkBox", pinned: "left", width: 52 },
-  { id: "name", label: "Họ tên", sortable: true, width: 220 },
-  { id: "dept", label: "Phòng ban", sortable: true, width: 150 },
+  { field: "name", headerName: "Họ tên", sortable: true, width: 220 },
+  { field: "dept", headerName: "Phòng ban", sortable: true, width: 150 },
   {
-    id: "salary",
-    label: "Lương",
+    field: "salary",
+    headerName: "Lương",
     align: "right",
     width: 140,
     sortable: true,
@@ -45,8 +46,8 @@ const columns: ColumnDef<EmployeeRow>[] = [
 ```ts
 const columns: ColumnDef<EmployeeRow>[] = [
   { cell: "checkBox", pinned: "left", width: 52 },
-  { id: "name", label: "Họ tên", pinned: "left", width: 220 },
-  { id: "status", label: "Trạng thái", pinned: "right", width: 160 }
+  { field: "name", headerName: "Họ tên", pinned: "left", width: 220 },
+  { field: "status", headerName: "Trạng thái", pinned: "right", width: 160 }
 ];
 ```
 
@@ -61,8 +62,14 @@ const columns: ColumnDef<EmployeeRow>[] = [
 
 ```ts
 const columns: ColumnDef<EmployeeRow>[] = [
-  { id: "name", label: "Họ tên", sortable: true, width: 220 },
-  { id: "salary", label: "Lương", sortable: true, align: "right", width: 140 }
+  { field: "name", headerName: "Họ tên", sortable: true, width: 220 },
+  {
+    field: "salary",
+    headerName: "Lương",
+    sortable: true,
+    align: "right",
+    width: 140,
+  }
 ];
 ```
 
@@ -77,8 +84,8 @@ const columns: ColumnDef<EmployeeRow>[] = [
 
 ```ts
 const columns: ColumnDef<EmployeeRow>[] = [
-  { id: "name", label: "Họ tên", width: 220, wrapText: true },
-  { id: "dept", label: "Phòng ban", width: 150 }
+  { field: "name", headerName: "Họ tên", width: 220, wrapText: true },
+  { field: "dept", headerName: "Phòng ban", width: 150 }
 ];
 ```
 
@@ -94,6 +101,62 @@ const columns: ColumnDef<EmployeeRow>[] = [
 ```tsx
 <DataGrid columns={columns} data={rows} showTooltip />
 ```
+
+## cellComponent (khuyến nghị)
+
+Dùng `cellComponent` để khai báo cell custom theo kiểu config, tránh viết inline `cell: (row) => ...` trong mảng cột.
+
+```tsx
+type RowAction = {
+  rowId: string;
+};
+
+type ActionCellProps = {
+  onAction: (payload: RowAction) => void;
+  label: string;
+} & DataGridCellComponentProps<EmployeeRow>;
+
+function ActionCell({ row, onAction, label }: ActionCellProps) {
+  return (
+    <button type="button" onClick={() => onAction({ rowId: String(row.id) })}>
+      {label}
+    </button>
+  );
+}
+
+const columns: ColumnDef<EmployeeRow>[] = [
+  {
+    field: "actions",
+    headerName: "Hành động",
+    width: 140,
+    align: "center",
+    cellComponent: ActionCell,
+    cellProps: {
+      label: "Sửa",
+      onAction: ({ rowId }) => console.log("edit row", rowId),
+    },
+  },
+];
+```
+
+`cellProps` có thể là object hoặc function:
+
+```ts
+cellProps: ({ row }) => ({
+  label: row.dept === "IT" ? "Chi tiết" : "Xem",
+  onAction: ({ rowId }) => console.log(rowId),
+});
+```
+
+## Thứ tự ưu tiên render cell
+
+Grid render cell theo thứ tự:
+
+1. `renderCell(params)`
+2. `cellComponent + cellProps`
+3. `cell(row)` (API cũ, tương thích ngược)
+4. `valueFormatter`
+5. render mặc định `String(value ?? "")`
 
 ## Client-side (`serverSide = false`)
 
