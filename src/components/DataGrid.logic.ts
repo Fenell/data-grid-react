@@ -1,4 +1,11 @@
-import { createElement, useEffect, useMemo, useState } from "react";
+import {
+  createElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ChangeEvent, MouseEvent, PointerEvent } from "react";
 import {
   getCoreRowModel,
@@ -19,6 +26,7 @@ import type {
 
 import type {
   ColumnDef,
+  DataGridCellRenderParams,
   DataGridApi,
   DataGridPaginationModel,
   DataGridProps,
@@ -94,6 +102,22 @@ const getValueByFieldPath = (row: GridRow, fieldPath: string): unknown => {
     }, row);
 };
 
+const resolveCellExtraProps = <T extends GridRow>(
+  cellProps:
+    | Record<string, unknown>
+    | ((params: DataGridCellRenderParams<T>) => Record<string, unknown>)
+    | undefined,
+  params: DataGridCellRenderParams<T>,
+) => {
+  if (!cellProps) {
+    return {};
+  }
+  if (typeof cellProps === "function") {
+    return cellProps(params);
+  }
+  return cellProps;
+};
+
 const resolveColumnId = <T extends GridRow>(
   column: ColumnDef<T>,
   index: number,
@@ -162,10 +186,31 @@ const createTanStackColumns = <T extends GridRow>(
       accessorFn: (row) => getValueByFieldPath(row, String(column.field)),
       header: column.headerName,
       cell: ({ row }) => {
+        const value = getValueByFieldPath(row.original, String(column.field));
+        const cellParams: DataGridCellRenderParams<T> = {
+          row: row.original,
+          value,
+          field: String(column.field),
+          rowIndex: row.index,
+        };
+
+        if (column.renderCell) {
+          return column.renderCell(cellParams);
+        }
+
+        if (column.cellComponent) {
+          const CellComponent = column.cellComponent;
+          const extraProps = resolveCellExtraProps(column.cellProps, cellParams);
+
+          return createElement(CellComponent, {
+            ...extraProps,
+            ...cellParams,
+          });
+        }
+
         if (column.cell) {
           return column.cell(row.original);
         }
-        const value = getValueByFieldPath(row.original, String(column.field));
         return formatCellValue(value, column.valueFormatter);
       },
       enableSorting: column.sortable ?? false,
@@ -284,7 +329,10 @@ export const useDataGridController = <T extends GridRow>({
       },
     );
 
-  const resolveRowId = (row: T) => String(getRowId ? getRowId(row) : row.id);
+  const resolveRowId = useCallback(
+    (row: T) => String(getRowId ? getRowId(row) : row.id),
+    [getRowId],
+  );
   const isRowSelected = (row: T) => Boolean(rowSelection[resolveRowId(row)]);
   const toggleRowSelected = (row: T, checked: boolean) => {
     const rowId = resolveRowId(row);
@@ -439,7 +487,23 @@ export const useDataGridController = <T extends GridRow>({
     autoResetPageIndex: false,
   });
 
-  const applyTransaction = (
+  const localRowsRef = useRef(localRows);
+  const tableRef = useRef(table);
+  const onDataSourceChangeRef = useRef(onDataSourceChange);
+
+  useEffect(() => {
+    localRowsRef.current = localRows;
+  }, [localRows]);
+
+  useEffect(() => {
+    tableRef.current = table;
+  }, [table]);
+
+  useEffect(() => {
+    onDataSourceChangeRef.current = onDataSourceChange;
+  }, [onDataSourceChange]);
+
+  const applyTransaction = useCallback((
     transaction: DataGridTransaction<T>,
   ): DataGridTransactionResult<T> => {
     const addItems = transaction.add ?? [];
@@ -454,7 +518,9 @@ export const useDataGridController = <T extends GridRow>({
     const removedRows: T[] = [];
     const updatedRows: T[] = [];
 
-    let nextRows = localRows.filter((row) => {
+    const currentRows = localRowsRef.current;
+
+    let nextRows = currentRows.filter((row) => {
       const rowId = resolveRowId(row);
       if (removeIdSet.has(rowId)) {
         removedRows.push(row);
@@ -477,15 +543,16 @@ export const useDataGridController = <T extends GridRow>({
       nextRows = [...nextRows, ...addItems];
     }
 
+    localRowsRef.current = nextRows;
     setLocalRows(nextRows);
-    onDataSourceChange?.(nextRows);
+    onDataSourceChangeRef.current?.(nextRows);
 
     return {
       add: addItems,
       remove: removedRows,
       update: updatedRows,
     };
-  };
+  }, [resolveRowId]);
 
   const rows = table.getRowModel().rows;
   const resolvedRowCount = serverSide
@@ -565,26 +632,26 @@ export const useDataGridController = <T extends GridRow>({
     summaryColumns,
   ]);
 
-  const api: DataGridApi<T> = {
+  const api = useMemo<DataGridApi<T>>(() => ({
     applyTransaction,
     clearSelectedRows: () => {
-      table.toggleAllRowsSelected(false);
+      tableRef.current.toggleAllRowsSelected(false);
     },
     getSelectedRowIds: () =>
-      Object.entries(table.getState().rowSelection)
+      Object.entries(tableRef.current.getState().rowSelection)
         .filter(([, isSelected]) => Boolean(isSelected))
         .map(([rowId]) => rowId),
     getSelectedRows: () =>
-      table.getSelectedRowModel().flatRows.map((row) => row.original),
+      tableRef.current.getSelectedRowModel().flatRows.map((row) => row.original),
     setGlobalFilter: (value: string) => {
-      table.setGlobalFilter(value);
+      tableRef.current.setGlobalFilter(value);
     },
     setColumnsVisible: (keys, visible) => {
       keys.forEach((key) => {
         const column =
           typeof key === "string"
-            ? table.getColumn(key)
-            : table.getColumn(key.id);
+            ? tableRef.current.getColumn(key)
+            : tableRef.current.getColumn(key.id);
 
         if (!column || !column.getCanHide()) {
           return;
@@ -593,7 +660,7 @@ export const useDataGridController = <T extends GridRow>({
         column.toggleVisibility(visible);
       });
     },
-  };
+  }), [applyTransaction]);
 
   return {
     api,

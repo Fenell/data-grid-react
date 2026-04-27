@@ -2,6 +2,8 @@ export { default } from "./DataGrid";
 export type {
   ColumnDef,
   DataGridApi,
+  DataGridCellComponentProps,
+  DataGridCellRenderParams,
   DataGridFeatureFlags,
   DataGridPaginationModel,
   DataGridProps,

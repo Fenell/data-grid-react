@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import type {
   Column,
   ColumnFiltersState,
@@ -44,6 +44,18 @@ type SharedColumnOptions = {
   enableResizing?: boolean;
 };
 
+export type DataGridCellRenderParams<T extends GridRow> = {
+  row: T;
+  value: unknown;
+  field: string;
+  rowIndex: number;
+};
+
+export type DataGridCellComponentProps<T extends GridRow> =
+  DataGridCellRenderParams<T>;
+
+type DataGridCellComponentExtraProps = Record<string, unknown>;
+
 type DataColumnDef<T extends GridRow> = {
   field: ColumnField<T>;
   headerName: string;
@@ -52,6 +64,11 @@ type DataColumnDef<T extends GridRow> = {
   filterType?: ColumnFilterType;
   options?: readonly string[];
   valueFormatter?: string | ((value: unknown) => string);
+  renderCell?: (params: DataGridCellRenderParams<T>) => ReactNode;
+  cellComponent?: ComponentType<any>;
+  cellProps?:
+    | DataGridCellComponentExtraProps
+    | ((params: DataGridCellRenderParams<T>) => DataGridCellComponentExtraProps);
   cell?: (row: T) => ReactNode;
 } & SharedColumnOptions;
 

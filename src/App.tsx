@@ -2,7 +2,11 @@ import "./App.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 
-import DataGrid, { type ColumnDef, type DataGridRef } from "./components/";
+import DataGrid, {
+  type ColumnDef,
+  type DataGridCellComponentProps,
+  type DataGridRef,
+} from "./components/";
 import {
   allEmployees,
   DEPTS,
@@ -19,9 +23,8 @@ type RowActionEvent = {
 type RowActionButtonCellProps = {
   actionKey: string;
   buttonLabel: string;
-  row: EmployeeRow;
   onAction: (event: RowActionEvent) => void;
-};
+} & DataGridCellComponentProps<EmployeeRow>;
 
 function RowActionButtonCell({
   actionKey,
@@ -55,6 +58,63 @@ function RowActionButtonCell({
     >
       {buttonLabel}
     </button>
+  );
+}
+
+function ProgressCell({ row }: DataGridCellComponentProps<EmployeeRow>) {
+  const color =
+    row.progress >= 70 ? "#1D9E75" : row.progress >= 40 ? "#378ADD" : "#E24B4A";
+
+  return (
+    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <span
+        style={{
+          display: "block",
+          minWidth: 60,
+          flex: 1,
+          overflow: "hidden",
+          height: 6,
+          borderRadius: 3,
+          background: "#E6F1FB",
+        }}
+      >
+        <span
+          style={{
+            display: "block",
+            width: `${row.progress}%`,
+            height: "100%",
+            borderRadius: 3,
+            background: color,
+          }}
+        />
+      </span>
+      <span style={{ minWidth: 28, fontSize: 12 }}>{row.progress}%</span>
+    </span>
+  );
+}
+
+function StatusBadgeCell({ row }: DataGridCellComponentProps<EmployeeRow>) {
+  const palette =
+    row.status === "active"
+      ? { label: "Hoạt động", bg: "#EAF3DE", color: "#3B6D11" }
+      : row.status === "inactive"
+        ? { label: "Tạm dừng", bg: "#F1EFE8", color: "#5F5E5A" }
+        : { label: "Chờ duyệt", bg: "#FAEEDA", color: "#854F0B" };
+
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "2px 9px",
+        borderRadius: 10,
+        background: palette.bg,
+        color: palette.color,
+        fontSize: 11,
+        fontWeight: 500,
+      }}
+    >
+      {palette.label}
+    </span>
   );
 }
 
@@ -113,41 +173,7 @@ const createEmployeeColumns = (
     sortable: true,
     width: 170,
     align: "center",
-    cell: (row) => {
-      const color =
-        row.progress >= 70
-          ? "#1D9E75"
-          : row.progress >= 40
-            ? "#378ADD"
-            : "#E24B4A";
-
-      return (
-        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              display: "block",
-              minWidth: 60,
-              flex: 1,
-              overflow: "hidden",
-              height: 6,
-              borderRadius: 3,
-              background: "#E6F1FB",
-            }}
-          >
-            <span
-              style={{
-                display: "block",
-                width: `${row.progress}%`,
-                height: "100%",
-                borderRadius: 3,
-                background: color,
-              }}
-            />
-          </span>
-          <span style={{ minWidth: 28, fontSize: 12 }}>{row.progress}%</span>
-        </span>
-      );
-    },
+    cellComponent: ProgressCell,
   },
   {
     field: "status",
@@ -158,30 +184,7 @@ const createEmployeeColumns = (
     options: ["", ...STATUSES],
     width: 100,
     align: "center",
-    cell: (row) => {
-      const palette =
-        row.status === "active"
-          ? { label: "Hoạt động", bg: "#EAF3DE", color: "#3B6D11" }
-          : row.status === "inactive"
-            ? { label: "Tạm dừng", bg: "#F1EFE8", color: "#5F5E5A" }
-            : { label: "Chờ duyệt", bg: "#FAEEDA", color: "#854F0B" };
-
-      return (
-        <span
-          style={{
-            display: "inline-block",
-            padding: "2px 9px",
-            borderRadius: 10,
-            background: palette.bg,
-            color: palette.color,
-            fontSize: 11,
-            fontWeight: 500,
-          }}
-        >
-          {palette.label}
-        </span>
-      );
-    },
+    cellComponent: StatusBadgeCell,
   },
   {
     field: "actions",
@@ -189,14 +192,12 @@ const createEmployeeColumns = (
     width: 130,
     align: "center",
     pinned: "right",
-    cell: (row) => (
-      <RowActionButtonCell
-        row={row}
-        actionKey="open-profile"
-        buttonLabel="Xem hồ sơ"
-        onAction={onCellAction}
-      />
-    ),
+    cellComponent: RowActionButtonCell,
+    cellProps: {
+      actionKey: "open-profile",
+      buttonLabel: "Xem hồ sơ",
+      onAction: onCellAction,
+    },
   },
   {
     field: "joined",
@@ -377,6 +378,7 @@ function App() {
         pageSizeOptions={[20, 50, 100]}
         showSummary={true}
         // sorting={sorting}
+
         getRowId={(row) => row.id}
         onGlobalFilterChange={setGlobalFilter}
         onRowClick={(row) => console.log("row click", row)}
