@@ -315,7 +315,7 @@ export const useDataGridController = <T extends GridRow>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     () => getInitialColumnVisibility(columns),
   );
-  const [columnPinning] = useState<ColumnPinningState>(() =>
+  const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(() =>
     getInitialColumnPinning(columns),
   );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -353,6 +353,11 @@ export const useDataGridController = <T extends GridRow>({
   useEffect(() => {
     setLocalRows(data);
   }, [data]);
+
+  useEffect(() => {
+    setColumnVisibility(getInitialColumnVisibility(columns));
+    setColumnPinning(getInitialColumnPinning(columns));
+  }, [columns]);
 
   const tanStackColumns = useMemo(
     () =>
